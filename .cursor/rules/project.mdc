@@ -1,0 +1,30 @@
+---
+description: Project architecture and quality rules
+alwaysApply: true
+---
+
+# Cursor Rules
+
+Read `.ai/global-architecture-principles.md` and relevant ADRs before changing code.
+
+## Mandatory Constraints
+
+- TypeScript everywhere with strict mode.
+- Feature-oriented clean architecture.
+- No business logic in React components.
+- Domain layer must not import React, browser APIs, FFmpeg, workers, Zustand, UI, or infrastructure.
+- Application layer depends on domain and ports, not concrete adapters.
+- Infrastructure implements ports.
+- UI calls application use cases only.
+- No audio uploads or server-side audio processing.
+- FFmpeg.wasm runs in workers.
+- Large batch workflows must avoid eager full-file reads.
+- Accessibility, privacy, testability, and memory safety are required.
+
+## Required Workflow
+
+1. Identify affected feature and layer.
+2. Verify dependency direction.
+3. Make the smallest correct change.
+4. Add tests.
+5. Update docs or ADRs when architecture changes.

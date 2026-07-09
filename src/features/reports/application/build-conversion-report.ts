@@ -1,0 +1,68 @@
+import type { DateTimeIso } from '../../../shared/domain/date-time';
+import type { AudioAsset } from '../../import/domain/audio-asset';
+import type { OutputDestination } from '../../output/application/output-destination';
+import type { ConversionPreset } from '../../presets/domain/conversion-preset';
+import type { ConversionQueue } from '../../queue/domain/conversion-queue';
+import type { ConversionReport, ConversionReportStatusSummary } from '../domain/conversion-report';
+
+export type BuildConversionReportInput = {
+  readonly queue: ConversionQueue;
+  readonly assets: readonly AudioAsset[];
+  readonly preset: ConversionPreset;
+  readonly destination: OutputDestination;
+  readonly generatedAt: DateTimeIso;
+};
+
+export function buildConversionReport(input: BuildConversionReportInput): ConversionReport {
+  const sourceNamesByAssetId = new Map(
+    input.assets.map((asset) => [asset.id, asset.sourceName] as const),
+  );
+
+  return {
+    schemaVersion: 1,
+    generatedAt: input.generatedAt,
+    queueId: input.queue.id,
+    queueStatus: input.queue.status,
+    queueCreatedAt: input.queue.createdAt,
+    ...(input.queue.startedAt === undefined ? {} : { queueStartedAt: input.queue.startedAt }),
+    ...(input.queue.completedAt === undefined ? {} : { queueCompletedAt: input.queue.completedAt }),
+    preset: {
+      presetId: input.preset.id,
+      name: input.preset.name,
+      targetContainer: input.preset.targetContainer,
+      targetCodec: input.preset.targetCodec,
+    },
+    destination: input.destination,
+    summary: summarizeJobs(input.queue),
+    jobs: input.queue.jobs.map((job) => ({
+      jobId: job.id,
+      assetId: job.assetId,
+      sourceName: sourceNamesByAssetId.get(job.assetId) ?? 'Unknown source file',
+      outputName: job.outputName,
+      status: job.status,
+      attempts: job.attempts,
+      progressPercent: job.progress.percent,
+      errors: job.errors.map((error) => error.message),
+    })),
+  };
+}
+
+function summarizeJobs(queue: ConversionQueue): ConversionReportStatusSummary {
+  return queue.jobs.reduce<ConversionReportStatusSummary>(
+    (summary, job) => ({
+      total: summary.total + 1,
+      completed: summary.completed + (job.status === 'completed' ? 1 : 0),
+      failed: summary.failed + (job.status === 'failed' ? 1 : 0),
+      skipped: summary.skipped + (job.status === 'skipped' ? 1 : 0),
+      cancelled: summary.cancelled + (job.status === 'cancelled' ? 1 : 0),
+      pending:
+        summary.pending +
+        (['pending', 'inspecting', 'ready', 'converting', 'writing', 'cancelling'].includes(
+          job.status,
+        )
+          ? 1
+          : 0),
+    }),
+    { total: 0, completed: 0, failed: 0, skipped: 0, cancelled: 0, pending: 0 },
+  );
+}

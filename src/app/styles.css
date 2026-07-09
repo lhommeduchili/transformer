@@ -1,0 +1,690 @@
+:root {
+  color: #e3ddd3;
+  background: #000;
+  --color-void: #000;
+  --color-carbon: #09090a;
+  --color-carbon-raised: #111114;
+  --color-oxblood: #3a0c14;
+  --color-crimson: #8c1c2b;
+  --color-bone: #e3ddd3;
+  --color-silver: #7a8084;
+  --color-silver-dim: #4e5358;
+  --color-phosphor: #65d685;
+  --color-cyan: #5eb5bd;
+  --color-line: rgb(227 221 211 / 22%);
+  --color-line-strong: rgb(227 221 211 / 48%);
+  --font-terminal:
+    'SFMono-Regular', 'JetBrains Mono', 'Geist Mono', Consolas, 'Liberation Mono', monospace;
+  --font-editorial: Georgia, 'Times New Roman', serif;
+  --font-interface:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-interface);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--color-void);
+}
+
+::selection {
+  background: var(--color-cyan);
+  color: var(--color-void);
+}
+
+h1,
+h2,
+h3,
+p,
+dl {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3,
+strong {
+  color: var(--color-bone);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 500;
+  line-height: 0.95;
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--font-editorial);
+  font-size: clamp(3.3rem, 9vw, 7.8rem);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.09em;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  letter-spacing: -0.03em;
+  text-transform: lowercase;
+}
+
+h3 {
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+  text-transform: lowercase;
+}
+
+p,
+li,
+dd {
+  color: rgb(227 221 211 / 76%);
+  line-height: 1.45;
+}
+
+code {
+  border: 1px solid var(--color-line);
+  background: var(--color-carbon);
+  color: var(--color-cyan);
+  padding: 0.125rem 0.25rem;
+  font-family: var(--font-terminal);
+}
+
+.app-shell {
+  display: grid;
+  width: min(100%, 1240px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: clamp(0.8rem, 2.8vw, 2.4rem);
+  gap: 0.8rem;
+  align-content: start;
+}
+
+.app-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+  border-bottom: 2px solid var(--color-bone);
+  padding-bottom: 0.7rem;
+}
+
+.signature-line,
+.eyebrow,
+.field-label,
+.setting-value,
+.format-line,
+.control-guidance,
+.compact-note,
+button,
+select,
+dt,
+dd,
+.panel-heading span,
+summary span:last-child,
+.job-status,
+.meter-counts {
+  font-family: var(--font-terminal);
+}
+
+.signature-line {
+  display: inline-flex;
+  width: 21ch;
+  max-width: calc(100vw - 1.4rem);
+  align-items: center;
+  justify-content: flex-start;
+  justify-self: end;
+  margin: 0;
+  color: var(--color-phosphor);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-shadow: 0 0 1.1rem rgb(101 214 133 / 18%);
+  white-space: nowrap;
+}
+
+.signature-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.1em;
+  margin-left: 0.28rem;
+  background: var(--color-phosphor);
+  transform: translateY(0.12em);
+  animation: signature-cursor 1s step-end infinite;
+}
+
+.app-signal,
+.app-count {
+  margin: 0;
+  border: 1px solid var(--color-line-strong);
+  padding: 0.45rem 0.55rem;
+  color: var(--color-bone);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.app-signal {
+  color: var(--color-phosphor);
+}
+
+.workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.workbench-primary,
+.workbench-setup,
+.details-stack {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.details-stack {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.panel,
+.setup-panel,
+.import-panel,
+.asset-panel,
+.queue-panel,
+.disclosure-panel {
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-void);
+}
+
+.panel,
+.setup-panel,
+.asset-panel,
+.queue-panel,
+.disclosure-panel {
+  display: grid;
+  gap: 0.85rem;
+  padding: clamp(0.85rem, 2vw, 1.15rem);
+}
+
+.import-panel {
+  padding: 0;
+}
+
+.drop-zone {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: clamp(12rem, 26vw, 20rem);
+  align-items: stretch;
+  gap: 1rem;
+  border: 1px solid rgb(94 181 189 / 72%);
+  padding: clamp(1rem, 3vw, 2rem);
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.drop-zone:hover {
+  border-color: var(--color-cyan);
+  background: rgb(94 181 189 / 4%);
+}
+
+.drop-zone--active {
+  border-color: var(--color-phosphor);
+  background: rgb(101 214 133 / 8%);
+  box-shadow: inset 0 0 0 1px var(--color-phosphor);
+}
+
+.import-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+}
+
+.imported-track-region {
+  display: grid;
+  gap: 0.65rem;
+  align-self: start;
+}
+
+.import-track-heading {
+  padding-bottom: 0.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--color-silver);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: lowercase;
+}
+
+.format-line,
+.setting-value,
+.control-guidance,
+.compact-note,
+.lede-small {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.format-line,
+.compact-note {
+  color: var(--color-silver);
+}
+
+.setting-value {
+  color: var(--color-cyan);
+  overflow-wrap: anywhere;
+}
+
+.control-guidance {
+  color: var(--color-phosphor);
+  letter-spacing: 0.04em;
+}
+
+.field-label {
+  color: var(--color-silver);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+}
+
+button,
+.button,
+select {
+  min-height: 2.7rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0 1rem;
+  text-decoration: none;
+  text-transform: lowercase;
+}
+
+select {
+  width: 100%;
+  background: var(--color-void);
+  color: var(--color-bone);
+  padding: 0 0.75rem;
+}
+
+.primary-action {
+  border-color: var(--color-bone);
+  background: var(--color-bone);
+  color: var(--color-void);
+}
+
+.secondary-action,
+button:not(.primary-action) {
+  background: var(--color-void);
+  color: var(--color-bone);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  color: var(--color-silver-dim);
+  border-color: var(--color-silver-dim);
+  background: var(--color-void);
+}
+
+button:hover:not(:disabled),
+button:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 3px;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--color-cyan);
+  background: var(--color-cyan);
+  color: var(--color-void);
+}
+
+.panel-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-line);
+  padding-bottom: 0.65rem;
+}
+
+.panel-heading span,
+summary span:last-child {
+  color: var(--color-silver);
+  font-size: 0.76rem;
+}
+
+.track-list,
+.detail-list,
+.job-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.track-row,
+.detail-list li,
+.job-row {
+  border-top: 1px solid var(--color-line);
+  padding: 0.7rem 0;
+}
+
+.track-row:first-child,
+.detail-list li:first-child,
+.job-row:first-child {
+  border-top: 0;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 1rem;
+  align-items: start;
+}
+
+.track-row strong,
+.detail-list strong,
+.job-row strong {
+  font-family: var(--font-terminal);
+  font-size: 0.82rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.track-row span,
+.detail-list span,
+.job-row span {
+  color: rgb(227 221 211 / 64%);
+  font-family: var(--font-terminal);
+  font-size: 0.74rem;
+  overflow-wrap: anywhere;
+}
+
+.row-actions {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+}
+
+.inline-x-action {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-silver);
+  font-family: var(--font-terminal);
+  font-size: 0.74rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.inline-x-action:hover:not(:disabled),
+.inline-x-action:focus-visible:not(:disabled) {
+  background: transparent;
+  color: var(--color-crimson);
+}
+
+.inline-x-action:focus-visible:not(:disabled) {
+  outline: 1px solid var(--color-crimson);
+  outline-offset: 2px;
+}
+
+.inline-x-action:disabled {
+  border: 0;
+  color: var(--color-silver-dim);
+}
+
+.detail-list li {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.rejected-files {
+  border-top: 1px solid var(--color-crimson);
+  padding-top: 0.85rem;
+}
+
+.rejected-files h3,
+[role='alert'] {
+  color: var(--color-crimson);
+}
+
+.queue-progress {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.queue-progress p {
+  margin: 0;
+  font-family: var(--font-terminal);
+  font-size: 0.78rem;
+}
+
+.meter-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.meter-counts {
+  color: var(--color-silver);
+}
+
+progress {
+  width: 100%;
+  max-width: 100%;
+  height: 0.7rem;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 0;
+  background: var(--color-void);
+}
+
+progress::-webkit-progress-bar {
+  background: var(--color-void);
+}
+
+progress::-webkit-progress-value {
+  background: var(--color-cyan);
+}
+
+progress::-moz-progress-bar {
+  background: var(--color-cyan);
+}
+
+.queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+}
+
+.job-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem 1rem;
+  align-items: start;
+}
+
+.job-row progress {
+  grid-column: 1 / -1;
+}
+
+.job-row div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.job-status {
+  color: var(--color-phosphor);
+  white-space: nowrap;
+}
+
+.job-status--cancelled,
+.job-status--cancelling,
+.job-status--failed,
+.job-status--skipped {
+  color: var(--color-crimson);
+}
+
+.job-row:has(.job-status--cancelled) progress::-webkit-progress-value,
+.job-row:has(.job-status--cancelling) progress::-webkit-progress-value,
+.job-row:has(.job-status--failed) progress::-webkit-progress-value,
+.job-row:has(.job-status--skipped) progress::-webkit-progress-value {
+  background: var(--color-crimson);
+}
+
+.job-row:has(.job-status--cancelled) progress::-moz-progress-bar,
+.job-row:has(.job-status--cancelling) progress::-moz-progress-bar,
+.job-row:has(.job-status--failed) progress::-moz-progress-bar,
+.job-row:has(.job-status--skipped) progress::-moz-progress-bar {
+  background: var(--color-crimson);
+}
+
+.disclosure-panel {
+  display: block;
+  align-self: start;
+  padding: 0;
+}
+
+summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  min-height: 2.7rem;
+  padding: 0.62rem 0.85rem;
+  color: var(--color-bone);
+  font-weight: 500;
+  list-style: none;
+  text-transform: lowercase;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::after {
+  color: var(--color-cyan);
+  content: '+';
+  font-family: var(--font-terminal);
+}
+
+details[open] summary {
+  border-bottom: 1px solid var(--color-line);
+}
+
+details[open] summary::after {
+  content: '-';
+}
+
+.disclosure-panel .detail-list {
+  padding: 0 0.85rem 0.35rem;
+}
+
+dl[aria-label='report summary'] {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) auto;
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+}
+
+dt,
+dd {
+  margin: 0;
+  font-size: 0.76rem;
+}
+
+dt {
+  color: var(--color-silver);
+}
+
+dd {
+  color: var(--color-bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    padding: 0.7rem;
+  }
+
+  .app-bar,
+  .workbench,
+  .details-stack {
+    grid-template-columns: 1fr;
+  }
+
+  .app-bar {
+    align-items: start;
+  }
+
+  .app-signal,
+  .app-count {
+    width: max-content;
+  }
+
+  .import-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes signature-cursor {
+  0%,
+  48% {
+    opacity: 1;
+  }
+
+  49%,
+  100% {
+    opacity: 0;
+  }
+}

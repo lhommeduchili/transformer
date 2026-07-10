@@ -36,6 +36,7 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 - Embedded artwork is preserved for AIFF and MP3 where FFmpeg can map the source artwork stream.
 - Filename structure such as `Artist - Song.flac` is preserved as `Artist - Song.aiff`.
 - Unsafe filesystem/DJ-hardware filename characters are still sanitized.
+- Compatibility warnings cover unsupported source container/codec, planned conversion, sample-rate changes, bitrate changes, stereo rendering, and incomplete inspection data.
 
 ## Accessibility Checklist
 
@@ -46,9 +47,20 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 - Automated axe checks pass in Playwright.
 - Manual keyboard review is required before public release.
 
+## Visual Design Checklist
+
+- `docs/ux/visual-design.md` remains accurate for the shipped UI.
+- The app preserves the brutal/minimal void-black workbench direction.
+- Primary and secondary buttons use documented inversion behavior.
+- Compact destructive actions remain text-only and crimson on hover/focus.
+- The drop zone uses phosphor green interaction feedback.
+- Queue progress uses the documented ASCII meter and accessible status text.
+- Job rows use text/spinner status rather than filled progress bars.
+- Desktop and mobile layouts receive manual visual review before release.
+
 ## Performance Checklist
 
-- Import and planning avoid reading audio bytes.
+- Import and planning avoid reading full audio bytes; inspection reads bounded local headers only.
 - Queue planning handles at least 1,000 lightweight entries.
 - Report generation handles at least 1,000 jobs.
 - Conversion reads only the active file.
@@ -60,4 +72,4 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 - Automated tests do not perform real FFmpeg conversion with fixture audio.
 - Real metadata/artwork compatibility must be manually verified with Rekordbox and target CDJ hardware.
 - Browser folder writing depends on File System Access API support; unsupported browsers use downloads.
-- Final visual design and branding are intentionally deferred.
+- Visual regression coverage is currently manual.

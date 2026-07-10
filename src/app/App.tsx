@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
 import {
   importAudioAssets,
@@ -9,7 +9,7 @@ import { createBrowserFileImportAdapter } from '../features/import/infrastructur
 import { ImportPanel } from '../features/import/ui/ImportPanel';
 import { inspectAudioAssets } from '../features/inspection/application/inspect-audio-assets';
 import type { TrackInspection } from '../features/inspection/domain/track-inspection';
-import { createMockAudioInspectionAdapter } from '../features/inspection/infrastructure/mock-audio-inspection-adapter';
+import { createBrowserLocalAudioInspectionAdapter } from '../features/inspection/infrastructure/browser-local-audio-inspection-adapter';
 import { InspectionSummary } from '../features/inspection/ui/InspectionSummary';
 import { createImportedFileRegistry } from '../features/import/application/imported-file-registry';
 import { createFfmpegAudioConversionAdapter } from '../features/conversion/infrastructure/ffmpeg-audio-conversion-adapter';
@@ -47,10 +47,10 @@ import { createSystemClock } from '../shared/infrastructure/browser/system-clock
 const fileImportAdapter = createBrowserFileImportAdapter();
 const idGenerator = createCryptoAudioAssetIdGenerator();
 const clock = createSystemClock();
-const inspectionAdapter = createMockAudioInspectionAdapter();
 const presets = getAvailablePresets();
 const signatureText = 'made with ♥ by alφ';
 const fileRegistry = createImportedFileRegistry();
+const inspectionAdapter = createBrowserLocalAudioInspectionAdapter(fileRegistry);
 const outputWriter = createBestAvailableOutputWriter();
 const mockQueueExecutor = createMockQueueExecutor(clock);
 let activeQueueExecutor: QueueExecutorPort = mockQueueExecutor;
@@ -71,6 +71,8 @@ function getConversionAdapter(): AudioConversionPort {
 }
 
 export function App() {
+  const setupControlsRef = useRef<HTMLDivElement>(null);
+  const [setupControlsHeight, setSetupControlsHeight] = useState<number | undefined>(undefined);
   const [assets, setAssets] = useState<readonly AudioAsset[]>([]);
   const [rejected, setRejected] = useState<readonly ImportRejection[]>([]);
   const [inspections, setInspections] = useState<readonly TrackInspection[]>([]);
@@ -104,6 +106,19 @@ export function App() {
           generatedAt: queue.completedAt ?? clock.now(),
         });
 
+  useEffect(() => {
+    const element = setupControlsRef.current;
+    if (element === null || typeof ResizeObserver !== 'function') return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry === undefined) return;
+      setSetupControlsHeight(Math.ceil(entry.contentRect.height));
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
   async function handleFilesSelected(files: readonly File[]) {
     const references = fileImportAdapter.fromFileList(files);
     const imported = importAudioAssets(references, { idGenerator, clock });
@@ -130,6 +145,18 @@ export function App() {
     setAssets(assets.filter((asset) => asset.id !== assetId));
     setInspections(inspections.filter((inspection) => inspection.assetId !== assetId));
     fileRegistry.unregister(assetId);
+
+    if (queue !== undefined) {
+      resetQueue();
+    }
+  }
+
+  function handleClearAssets() {
+    if (!canRemoveImportedAssets) return;
+
+    setAssets([]);
+    setInspections([]);
+    fileRegistry.clear();
 
     if (queue !== undefined) {
       resetQueue();
@@ -190,13 +217,22 @@ export function App() {
         <HeaderSignature />
       </header>
 
-      <section className="workbench" aria-label="conversion workbench">
+      <section
+        className="workbench"
+        aria-label="conversion workbench"
+        style={
+          setupControlsHeight === undefined
+            ? undefined
+            : ({ '--drop-zone-min-height': `${setupControlsHeight}px` } as CSSProperties)
+        }
+      >
         <div className="workbench-primary">
           <ImportPanel
             assets={assets}
             rejected={rejected}
             canRemoveAssets={canRemoveImportedAssets}
             onRemoveAsset={handleRemoveAsset}
+            onClearAssets={handleClearAssets}
             onFilesSelected={(files) => {
               void handleFilesSelected(files);
             }}
@@ -223,19 +259,21 @@ export function App() {
         </div>
 
         <aside className="workbench-setup" aria-label="conversion setup">
-          <PresetSelector
-            presets={presets}
-            selectedPreset={selectedPreset}
-            onPresetSelected={setSelectedPreset}
-          />
-          <OutputDestinationPanel
-            destination={outputDestination}
-            supportsFolderSelection={supportsFileSystemAccess()}
-            error={outputError}
-            onChooseDestination={() => {
-              void handleChooseOutputDestination();
-            }}
-          />
+          <div ref={setupControlsRef} className="setup-controls-stack">
+            <PresetSelector
+              presets={presets}
+              selectedPreset={selectedPreset}
+              onPresetSelected={setSelectedPreset}
+            />
+            <OutputDestinationPanel
+              destination={outputDestination}
+              supportsFolderSelection={supportsFileSystemAccess()}
+              error={outputError}
+              onChooseDestination={() => {
+                void handleChooseOutputDestination();
+              }}
+            />
+          </div>
           <ReportPanel report={report} onExportJson={handleExportReportJson} />
         </aside>
       </section>

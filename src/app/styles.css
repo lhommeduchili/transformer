@@ -193,6 +193,11 @@ summary span:last-child,
   gap: 0.8rem;
 }
 
+.setup-controls-stack {
+  display: grid;
+  gap: 0.8rem;
+}
+
 .details-stack {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
@@ -225,10 +230,10 @@ summary span:last-child,
 .drop-zone {
   display: grid;
   grid-template-columns: 1fr;
-  min-height: clamp(12rem, 26vw, 20rem);
+  min-height: max(var(--drop-zone-min-height, 15rem), 15rem);
   align-items: stretch;
   gap: 1rem;
-  border: 1px solid rgb(94 181 189 / 72%);
+  border: 1px solid var(--color-line-strong);
   padding: clamp(1rem, 3vw, 2rem);
   transition:
     border-color 180ms ease,
@@ -236,9 +241,10 @@ summary span:last-child,
     box-shadow 180ms ease;
 }
 
-.drop-zone:hover {
-  border-color: var(--color-cyan);
-  background: rgb(94 181 189 / 4%);
+.drop-zone:hover,
+.drop-zone:focus-within {
+  border-color: rgb(101 214 133 / 72%);
+  background: rgb(101 214 133 / 4%);
 }
 
 .drop-zone--active {
@@ -256,12 +262,24 @@ summary span:last-child,
 
 .imported-track-region {
   display: grid;
-  gap: 0.65rem;
+  gap: 0;
   align-self: start;
 }
 
 .import-track-heading {
-  padding-bottom: 0.5rem;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.import-track-heading h3 {
+  margin-bottom: 0;
+}
+
+.import-track-heading h3 span {
+  color: var(--color-silver);
+  font-family: var(--font-terminal);
+  font-size: 0.76rem;
+  font-weight: 400;
 }
 
 .eyebrow {
@@ -355,14 +373,39 @@ button:hover:not(:disabled),
 button:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 2px solid var(--color-cyan);
-  outline-offset: 3px;
+  outline: 0;
+}
+
+.inline-x-action:hover:not(:disabled),
+.inline-x-action:focus-visible:not(:disabled) {
+  outline: 0;
+  outline-offset: 0;
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--color-cyan);
-  background: var(--color-cyan);
+  border-color: var(--color-bone);
+  background: var(--color-bone);
   color: var(--color-void);
+}
+
+button:focus-visible:not(:disabled) {
+  border-color: var(--color-bone);
+  background: var(--color-bone);
+  color: var(--color-void);
+}
+
+.primary-action:hover:not(:disabled),
+.primary-action:focus-visible:not(:disabled) {
+  border-color: var(--color-bone);
+  background: var(--color-void);
+  color: var(--color-bone);
+}
+
+.inline-x-action:hover:not(:disabled),
+.inline-x-action:focus-visible:not(:disabled) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-crimson);
 }
 
 .panel-heading {
@@ -375,9 +418,10 @@ button:hover:not(:disabled) {
 }
 
 .panel-heading span,
-summary span:last-child {
+summary span span {
   color: var(--color-silver);
   font-size: 0.76rem;
+  font-weight: 400;
 }
 
 .track-list,
@@ -390,14 +434,13 @@ summary span:last-child {
   list-style: none;
 }
 
-.track-row,
 .detail-list li,
 .job-row {
   border-top: 1px solid var(--color-line);
-  padding: 0.7rem 0;
+  min-height: 2.9rem;
+  padding: 0.6rem 0;
 }
 
-.track-row:first-child,
 .detail-list li:first-child,
 .job-row:first-child {
   border-top: 0;
@@ -407,7 +450,13 @@ summary span:last-child {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.35rem 1rem;
-  align-items: start;
+  align-items: center;
+  min-height: 2.9rem;
+  padding: 0.6rem 0;
+}
+
+.track-row + .track-row {
+  border-top: 1px solid var(--color-line);
 }
 
 .track-row strong,
@@ -445,15 +494,33 @@ summary span:last-child {
   padding: 0;
 }
 
-.inline-x-action:hover:not(:disabled),
-.inline-x-action:focus-visible:not(:disabled) {
+.clear-track-action {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-silver);
+  font-family: var(--font-terminal);
+  font-size: 0.74rem;
+  line-height: 1;
+  padding: 0;
+}
+
+.clear-track-action:hover:not(:disabled),
+.clear-track-action:focus-visible:not(:disabled) {
+  border-color: transparent;
+  outline: 0;
   background: transparent;
   color: var(--color-crimson);
 }
 
+.clear-track-action:disabled {
+  border: 0;
+  color: var(--color-silver-dim);
+}
+
+.inline-x-action:hover:not(:disabled),
 .inline-x-action:focus-visible:not(:disabled) {
-  outline: 1px solid var(--color-crimson);
-  outline-offset: 2px;
+  text-decoration: none;
 }
 
 .inline-x-action:disabled {
@@ -488,35 +555,36 @@ summary span:last-child {
 }
 
 .meter-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1ch;
+  color: var(--color-phosphor);
+  font-variant-numeric: tabular-nums;
+}
+
+.meter-text {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.meter-empty,
+.meter-filled {
+  display: block;
+  white-space: nowrap;
+}
+
+.meter-filled {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  overflow: hidden;
+  color: var(--color-phosphor);
 }
 
 .meter-counts {
   color: var(--color-silver);
-}
-
-progress {
-  width: 100%;
-  max-width: 100%;
-  height: 0.7rem;
-  overflow: hidden;
-  border: 1px solid var(--color-line);
-  border-radius: 0;
-  background: var(--color-void);
-}
-
-progress::-webkit-progress-bar {
-  background: var(--color-void);
-}
-
-progress::-webkit-progress-value {
-  background: var(--color-cyan);
-}
-
-progress::-moz-progress-bar {
-  background: var(--color-cyan);
 }
 
 .queue-actions {
@@ -526,15 +594,19 @@ progress::-moz-progress-bar {
   margin-top: 0.45rem;
 }
 
+.queue-panel {
+  padding-block: 1rem;
+}
+
+.queue-panel > :last-child {
+  margin-bottom: 0;
+}
+
 .job-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.55rem 1rem;
   align-items: start;
-}
-
-.job-row progress {
-  grid-column: 1 / -1;
 }
 
 .job-row div {
@@ -544,7 +616,15 @@ progress::-moz-progress-bar {
 
 .job-status {
   color: var(--color-phosphor);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.job-spinner::before {
+  display: inline-block;
+  min-width: 1ch;
+  content: '⠋';
+  animation: job-spinner 900ms steps(1, end) infinite;
 }
 
 .job-status--cancelled,
@@ -552,20 +632,6 @@ progress::-moz-progress-bar {
 .job-status--failed,
 .job-status--skipped {
   color: var(--color-crimson);
-}
-
-.job-row:has(.job-status--cancelled) progress::-webkit-progress-value,
-.job-row:has(.job-status--cancelling) progress::-webkit-progress-value,
-.job-row:has(.job-status--failed) progress::-webkit-progress-value,
-.job-row:has(.job-status--skipped) progress::-webkit-progress-value {
-  background: var(--color-crimson);
-}
-
-.job-row:has(.job-status--cancelled) progress::-moz-progress-bar,
-.job-row:has(.job-status--cancelling) progress::-moz-progress-bar,
-.job-row:has(.job-status--failed) progress::-moz-progress-bar,
-.job-row:has(.job-status--skipped) progress::-moz-progress-bar {
-  background: var(--color-crimson);
 }
 
 .disclosure-panel {
@@ -686,5 +752,39 @@ dd {
   49%,
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes job-spinner {
+  0% {
+    content: '⠋';
+  }
+
+  12.5% {
+    content: '⠙';
+  }
+
+  25% {
+    content: '⠹';
+  }
+
+  37.5% {
+    content: '⠸';
+  }
+
+  50% {
+    content: '⠼';
+  }
+
+  62.5% {
+    content: '⠴';
+  }
+
+  75% {
+    content: '⠦';
+  }
+
+  87.5% {
+    content: '⠧';
   }
 }

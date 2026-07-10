@@ -32,7 +32,7 @@ test('imports a supported audio file through the picker', async ({ page }) => {
   await expect(page.getByLabel(/preset/i)).toHaveValue(/cdj_rekordbox_safe_aiff/);
   await expect(page.getByRole('heading', { name: /^report$/i })).toHaveCount(0);
 
-  await page.getByRole('button', { name: /remove artist - song.flac/i }).click();
+  await page.getByRole('button', { name: /^clear$/i }).click();
   await expect(page.getByLabel('imported audio files')).toHaveCount(0);
 });
 
@@ -59,6 +59,46 @@ test('supports keyboard access to primary controls', async ({ page }) => {
 
   await tabUntilFocused(page, presetSelector);
   await expect(presetSelector).toBeFocused();
+});
+
+test('supports keyboard access to imported track removal and clear', async ({ page }) => {
+  await page.goto('/');
+
+  await page.getByLabel(/choose audio files/i).setInputFiles([
+    {
+      name: 'Artist - Song.flac',
+      mimeType: 'audio/flac',
+      buffer: Buffer.from('placeholder'),
+    },
+    {
+      name: 'Another - Track.wav',
+      mimeType: 'audio/wav',
+      buffer: Buffer.from('placeholder'),
+    },
+  ]);
+
+  const clearButton = page.getByRole('button', { name: /^clear$/i });
+  const removeButton = page.getByRole('button', { name: /remove artist - song.flac/i });
+
+  await tabUntilFocused(page, clearButton);
+  await expect(clearButton).toBeFocused();
+
+  await page.keyboard.press('Tab');
+  await expect(removeButton).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect(page.getByLabel('imported audio files').getByText('Artist - Song.flac')).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByLabel('imported audio files').getByText('Another - Track.wav'),
+  ).toBeVisible();
+
+  await page.keyboard.press('Shift+Tab');
+  await expect(clearButton).toBeFocused();
+  await page.keyboard.press('Enter');
+
+  await expect(page.getByLabel('imported audio files')).toHaveCount(0);
 });
 
 test('has no detectable accessibility violations on the app shell', async ({ page }) => {

@@ -12,8 +12,9 @@ export function InspectionSummary({ inspections }: InspectionSummaryProps) {
   return (
     <details className="disclosure-panel">
       <summary id="inspection-title">
-        <span>checks</span>
-        <span>{inspections.length}</span>
+        <span>
+          checks <span>({inspections.length})</span>
+        </span>
       </summary>
 
       <ul className="detail-list" aria-label="inspection results">

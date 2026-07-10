@@ -32,6 +32,7 @@ describe('ImportPanel', () => {
         rejected={[]}
         canRemoveAssets={true}
         onRemoveAsset={() => undefined}
+        onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
       />,
     );
@@ -49,6 +50,7 @@ describe('ImportPanel', () => {
         rejected={[]}
         canRemoveAssets={true}
         onRemoveAsset={() => undefined}
+        onClearAssets={() => undefined}
         onFilesSelected={onFilesSelected}
       />,
     );
@@ -65,6 +67,7 @@ describe('ImportPanel', () => {
         rejected={[]}
         canRemoveAssets={true}
         onRemoveAsset={() => undefined}
+        onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
       />,
     );
@@ -83,6 +86,7 @@ describe('ImportPanel', () => {
         rejected={[]}
         canRemoveAssets={true}
         onRemoveAsset={onRemoveAsset}
+        onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
       />,
     );
@@ -92,6 +96,25 @@ describe('ImportPanel', () => {
     expect(onRemoveAsset).toHaveBeenCalledWith(asset.id);
   });
 
+  it('emits clear all for imported tracks', () => {
+    const onClearAssets = vi.fn();
+
+    render(
+      <ImportPanel
+        assets={[fixtureAsset()]}
+        rejected={[]}
+        canRemoveAssets={true}
+        onRemoveAsset={() => undefined}
+        onClearAssets={onClearAssets}
+        onFilesSelected={() => undefined}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+
+    expect(onClearAssets).toHaveBeenCalledTimes(1);
+  });
+
   it('marks the drop surface active during drag', () => {
     render(
       <ImportPanel
@@ -99,6 +122,7 @@ describe('ImportPanel', () => {
         rejected={[]}
         canRemoveAssets={true}
         onRemoveAsset={() => undefined}
+        onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
       />,
     );

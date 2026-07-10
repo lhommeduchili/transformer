@@ -12,7 +12,7 @@ Implemented capabilities:
 - Vite, React, TypeScript, Vitest, Playwright, ESLint, Prettier, dependency-cruiser, and CI gates.
 - Feature-oriented clean architecture with domain, application, infrastructure, and UI boundaries.
 - Local file import with lightweight file references.
-- Mock inspection for current UI planning.
+- Local header-based inspection for WAV, AIFF, FLAC, MP3, and M4A container/stream details where headers expose them.
 - AIFF-first DJ preset for CDJ/Rekordbox-safe output.
 - FLAC to AIFF conversion through worker-isolated FFmpeg.wasm.
 - AIFF output uses `pcm_s16be`, 44.1kHz, stereo.
@@ -22,8 +22,10 @@ Implemented capabilities:
 - File System Access folder output in supported browsers.
 - Browser download fallback where folder output is unavailable.
 - Queue planning, start, pause, resume, cancel, retry, skip, reset, and progress states.
+- Compatibility warnings for unsupported source containers/codecs, planned conversions, sample-rate changes, bitrate changes, stereo rendering, and incomplete inspection data.
 - Local JSON conversion reports.
 - Accessibility and UX hardening for control guidance, keyboard flow, progress status, and error recovery.
+- Documented brutal/minimal visual design baseline for the local audio workbench.
 - Performance guardrails and 1,000-item tests for large-batch planning/reporting.
 - Production readiness and manual release checklists.
 
@@ -73,6 +75,12 @@ Import and file registry:
 - `src/features/import/application/import-audio-assets.ts`
 - `src/features/import/application/imported-file-registry.ts`
 - `src/features/import/infrastructure/browser-file-import-adapter.ts`
+
+Inspection:
+
+- `src/features/inspection/application/audio-inspection-port.ts`
+- `src/features/inspection/infrastructure/browser-local-audio-inspection-adapter.ts`
+- `src/features/inspection/infrastructure/mock-audio-inspection-adapter.ts`
 
 Presets and filenames:
 
@@ -127,8 +135,8 @@ Architecture docs:
 
 At handoff time:
 
-- 57 unit/component tests pass.
-- 5 Playwright E2E/accessibility tests pass.
+- 72 unit/component tests pass.
+- 6 Playwright E2E/accessibility tests pass.
 - Architecture boundary checks pass.
 - Production build passes.
 
@@ -136,7 +144,8 @@ Coverage includes:
 
 - Domain primitives and IDs.
 - Import filtering and 1,000-file lightweight import.
-- Presets, filename sanitization, output filename preview.
+- Local header-based inspection for WAV and MP3 fixture headers.
+- Presets, compatibility warnings, filename sanitization, output filename preview.
 - Queue planning, progress, state transitions, mock executor, conversion-output executor.
 - Active-file-only conversion reads.
 - FFmpeg argument construction for AIFF/MP3 metadata and artwork mapping.
@@ -145,14 +154,30 @@ Coverage includes:
 - Error boundary and key UI panels.
 - E2E import, filename preservation, output destination guard, keyboard flow, and axe scan.
 
+## Visual Design Baseline
+
+The current visual direction is documented in `docs/ux/visual-design.md` and should be preserved by future UI work.
+
+Key decisions:
+
+- The app is a brutal, minimal, void-black local audio workbench, not a generic dashboard.
+- Use bone, phosphor green, crimson, silver, and restrained cyan only.
+- Main buttons use color inversion for hover/focus, not cyan outline rectangles.
+- Compact `x` and `clear` actions are text-only and turn crimson on hover/focus.
+- The audio/drop box uses normal square borders with phosphor green hover, focus, and drag-active feedback.
+- Uploaded track separators appear only between tracks.
+- Queue progress uses a full-width ASCII meter with `░` and `█`, ending one character before the percent.
+- Individual queue jobs use status text and an active spinner, not filled progress bars.
+- Accessibility requirements remain non-negotiable: keyboard access, visible focus, status announcements, reduced-motion behavior, and axe checks.
+
 ## Known Limitations
 
 - Real FFmpeg conversion is not executed in automated tests with fixture audio.
-- Inspection is still mock-based; real metadata/codec inspection is future work.
+- Inspection is header-based and intentionally bounded; full metadata parsing and deep stream validation are future work.
 - Browser folder output depends on File System Access API support.
 - Safari/Firefox use download fallback behavior.
 - Metadata/artwork compatibility must be manually verified with representative source files and Rekordbox/CDJ hardware.
-- Final visual design, branding, and advanced UX polish are intentionally deferred.
+- The visual design baseline is documented, but visual regression coverage is still manual.
 - No persistent library database or settings persistence exists yet.
 - Default conversion concurrency is intentionally `1`.
 
@@ -160,11 +185,11 @@ Coverage includes:
 
 Good next increments:
 
-- Replace mock inspection with real local inspection behind the existing inspection port.
-- Add user-visible compatibility warnings based on real inspection data.
+- Add deeper local metadata parsing for ID3, Vorbis comments, FLAC tags, and MP4 atoms.
+- Add grouped compatibility warning presentation if warning volume becomes noisy with large batches.
 - Add settings for output extension preference if `.aif` is desired instead of `.aiff`.
 - Add optional report CSV export if useful for library audits.
-- Add final UX/UI design pass once functional behavior is stable.
+- Add visual QA and regression hardening around the documented design baseline.
 - Add real-audio integration tests only if stable fixture licensing and runtime constraints are acceptable.
 - Run full manual release validation from `docs/operations/manual-release-test.md` on target browsers and Rekordbox/CDJ hardware.
 

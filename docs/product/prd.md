@@ -75,7 +75,10 @@ No audio files are uploaded to a server. Processing is local-first and powered b
 - Key detection.
 - Waveform rendering.
 - AI mastering.
-- Final branding, color palette, or visual identity.
+
+## Visual Product Direction
+
+The current product UI has a documented brutal/minimal local workbench visual baseline. Preserve the direction in `docs/ux/visual-design.md` while continuing functional development.
 
 ## Success Criteria
 

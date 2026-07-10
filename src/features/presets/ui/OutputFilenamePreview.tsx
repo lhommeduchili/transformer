@@ -12,8 +12,9 @@ export function OutputFilenamePreview({ previews }: OutputFilenamePreviewProps) 
   return (
     <details className="disclosure-panel">
       <summary id="filename-preview-title">
-        <span>filenames</span>
-        <span>{previews.length}</span>
+        <span>
+          filenames <span>({previews.length})</span>
+        </span>
       </summary>
 
       <ul className="detail-list" aria-label="output filename previews">

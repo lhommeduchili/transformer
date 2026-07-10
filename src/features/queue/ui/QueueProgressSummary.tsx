@@ -6,6 +6,10 @@ type QueueProgressSummaryProps = {
   readonly summary: QueueProgressSummaryModel;
 };
 
+const asciiMeterLength = 240;
+const emptyMeter = '░'.repeat(asciiMeterLength);
+const filledMeter = '█'.repeat(asciiMeterLength);
+
 export function QueueProgressSummary({ queue, summary }: QueueProgressSummaryProps) {
   const status = queue?.status ?? 'no queue';
   const statusText = `queue status: ${status}. ${summary.globalPercent}% processed. ${summary.completed} completed, ${summary.failed} failed, ${summary.pending} pending, ${summary.active} active.`;
@@ -21,9 +25,14 @@ export function QueueProgressSummary({ queue, summary }: QueueProgressSummaryPro
   return (
     <div className="queue-progress" role="status" aria-live="polite" aria-atomic="true">
       <p className="meter-line">
+        <span className="meter-text" aria-hidden="true">
+          <span className="meter-empty">{emptyMeter}</span>
+          <span className="meter-filled" style={{ inlineSize: `${summary.globalPercent}%` }}>
+            {filledMeter}
+          </span>
+        </span>
         <span>{summary.globalPercent}%</span>
       </p>
-      <progress aria-label="global queue progress" max={100} value={summary.globalPercent} />
       <p className="meter-counts">
         {summary.completed}/{queue.jobs.length} done · {summary.failed} failed · {summary.active}{' '}
         active

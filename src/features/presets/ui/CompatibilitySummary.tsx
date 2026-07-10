@@ -17,8 +17,9 @@ export function CompatibilitySummary({ validations }: CompatibilitySummaryProps)
   return (
     <details className="disclosure-panel">
       <summary id="compatibility-title">
-        <span>compatibility</span>
-        <span>{warningCount}</span>
+        <span>
+          compatibility <span>({warningCount})</span>
+        </span>
       </summary>
 
       <ul className="detail-list" aria-label="compatibility warnings">

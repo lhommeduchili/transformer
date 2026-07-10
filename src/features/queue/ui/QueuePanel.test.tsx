@@ -88,4 +88,32 @@ describe('QueuePanel', () => {
 
     expect(onSkipJob).toHaveBeenCalledWith(queue.jobs[0]?.id);
   });
+
+  it('uses accessible ASCII queue progress instead of native progress bars', () => {
+    const queue = idleQueue();
+
+    render(
+      <QueuePanel
+        assets={[]}
+        previews={[]}
+        selectedPreset={getDefaultPreset()}
+        queue={queue}
+        error={undefined}
+        onPlanQueue={vi.fn()}
+        onStartQueue={vi.fn()}
+        onPauseQueue={vi.fn()}
+        onResumeQueue={vi.fn()}
+        onCancelQueue={vi.fn()}
+        onRetryFailed={vi.fn()}
+        onResetQueue={vi.fn()}
+        onSkipJob={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/queue status: idle/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/0% processed/i);
+    expect(screen.getByText(/░/)).toHaveClass('meter-empty');
+    expect(screen.getByText(/█/)).toHaveClass('meter-filled');
+  });
 });

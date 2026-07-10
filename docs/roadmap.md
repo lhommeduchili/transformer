@@ -139,8 +139,8 @@ The Phase 0-11 baseline is complete for the current local-first conversion workf
 
 Candidates:
 
-- Real local inspection behind the existing inspection port.
-- Rich compatibility warnings from real inspection data.
-- Final UX/UI design pass.
+- Deeper local metadata parsing for ID3, Vorbis comments, FLAC tags, and MP4 atoms.
+- Grouped compatibility warning presentation for large batches if needed.
+- Visual QA and regression hardening around the documented design baseline.
 - Optional report CSV export.
 - Browser and Rekordbox/CDJ manual validation across representative libraries.

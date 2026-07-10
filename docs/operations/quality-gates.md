@@ -36,3 +36,4 @@ Implementation work should not be accepted if it:
 - Makes large batch workflows eagerly memory-bound.
 - Lacks tests for changed domain or application behavior.
 - Regresses keyboard or assistive technology access.
+- Regresses the documented visual design baseline in `docs/ux/visual-design.md`.

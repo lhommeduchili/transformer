@@ -36,14 +36,15 @@ export function QueueJobList({ queue, assets, onSkipJob }: QueueJobListProps) {
                 </button>
               ) : null}
               <span className={`job-status job-status--${job.status}`}>
-                {job.status} · {job.progress.percent}%
+                {job.status}{' '}
+                {isActiveJobStatus(job.status) ? (
+                  <span className="job-spinner" aria-hidden="true" />
+                ) : (
+                  '·'
+                )}{' '}
+                {job.progress.percent}%
               </span>
             </div>
-            <progress
-              aria-label={`progress for ${job.outputName}`}
-              max={100}
-              value={job.progress.percent}
-            />
           </li>
         );
       })}
@@ -58,4 +59,8 @@ function canDismissJob(queueStatus: ConversionQueue['status'], jobStatus: string
 
 function dismissVerb(jobStatus: string): 'cancel' | 'skip' {
   return ['inspecting', 'converting', 'writing'].includes(jobStatus) ? 'cancel' : 'skip';
+}
+
+function isActiveJobStatus(jobStatus: string): boolean {
+  return ['inspecting', 'converting', 'writing', 'cancelling'].includes(jobStatus);
 }

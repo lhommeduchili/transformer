@@ -28,15 +28,19 @@ Each critical task must be possible with keyboard-only interaction.
 - Manual keyboard review.
 - Screen-reader pattern review for live progress and errors.
 
+## Visual System Requirements
+
+The visual direction is documented in `docs/ux/visual-design.md`. Visual polish must preserve:
+
+- Keyboard reachability for import, setup controls, queue actions, disclosures, and report actions.
+- Visible focus states, including controls that use inversion instead of outlines.
+- Accessible progress announcements for the ASCII queue meter.
+- Assistive-technology discoverability for rejected files and errors.
+- Reduced-motion behavior for signature and spinner animation.
+
 ## Phase 11 Release Checks
 
 - Verify keyboard-only focus reaches import, preset, output, queue, and report controls.
 - Verify disabled queue/report actions include visible guidance.
 - Verify errors are announced through alert semantics.
 - Verify queue progress is exposed through a status region.
-
-## Non-Goals In Phase 0
-
-- Final visual design.
-- Final color palette.
-- Brand voice.

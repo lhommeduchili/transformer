@@ -8,6 +8,7 @@ type ImportPanelProps = {
   readonly rejected: readonly ImportRejection[];
   readonly canRemoveAssets: boolean;
   readonly onRemoveAsset: (assetId: AudioAsset['id']) => void;
+  readonly onClearAssets: () => void;
   readonly onFilesSelected: (files: readonly File[]) => void;
 };
 
@@ -16,6 +17,7 @@ export function ImportPanel({
   rejected,
   canRemoveAssets,
   onRemoveAsset,
+  onClearAssets,
   onFilesSelected,
 }: ImportPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,8 +67,17 @@ export function ImportPanel({
         {assets.length > 0 || rejected.length > 0 ? (
           <div className="imported-track-region">
             <div className="panel-heading import-track-heading">
-              <h3>tracks</h3>
-              <span>{assets.length}</span>
+              <h3>
+                tracks <span>({assets.length})</span>
+              </h3>
+              <button
+                className="clear-track-action"
+                type="button"
+                onClick={onClearAssets}
+                disabled={!canRemoveAssets || assets.length === 0}
+              >
+                clear
+              </button>
             </div>
 
             {assets.length > 0 ? (
@@ -84,7 +95,6 @@ export function ImportPanel({
                       >
                         x
                       </button>
-                      <span>{asset.extension}</span>
                     </div>
                   </li>
                 ))}

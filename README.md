@@ -8,7 +8,7 @@ The product principle is local-first processing: audio files must never be uploa
 
 Phase 11: production readiness.
 
-The project now has a Vite, React, TypeScript, test, lint, build, E2E, and architecture-check scaffold plus pure domain models, local file import, browser capability detection, mock inspection, AIFF-first DJ presets, compatibility validation, filename sanitization, output filename previews, queue planning, queue controls, worker-isolated FFmpeg.wasm conversion infrastructure, output folder selection, download fallback writing, real conversion-to-output executor wiring, preserved text metadata/artwork for DJ-safe AIFF/MP3 outputs, local JSON conversion reports, UX hardening for recovery, control guidance, keyboard flow, and progress announcements, performance guardrails for large batch planning/reporting and active-file-only conversion reads, and production readiness checklists for release validation.
+The project now has a Vite, React, TypeScript, test, lint, build, E2E, and architecture-check scaffold plus pure domain models, local file import, browser capability detection, bounded local header inspection, AIFF-first DJ presets, compatibility validation, filename sanitization, output filename previews, queue planning, queue controls, worker-isolated FFmpeg.wasm conversion infrastructure, output folder selection, download fallback writing, real conversion-to-output executor wiring, preserved text metadata/artwork for DJ-safe AIFF/MP3 outputs, local JSON conversion reports, UX hardening for recovery, control guidance, keyboard flow, and progress announcements, a documented brutal/minimal local workbench visual baseline, performance guardrails for large batch planning/reporting and active-file-only conversion reads, and production readiness checklists for release validation.
 
 ## Primary Documents
 
@@ -21,6 +21,7 @@ The project now has a Vite, React, TypeScript, test, lint, build, E2E, and archi
 - `docs/architecture/system-architecture.md`: system architecture.
 - `docs/architecture/domain-model.md`: domain model.
 - `docs/architecture/processing-pipeline.md`: conversion pipeline.
+- `docs/ux/visual-design.md`: current visual design direction and UI review checklist.
 - `docs/testing/testing-strategy.md`: testing strategy.
 - `docs/operations/project-handoff.md`: current state, key files, known limitations, and next work.
 - `docs/operations/production-readiness.md`: release-readiness checklist.
@@ -37,6 +38,7 @@ The project now has a Vite, React, TypeScript, test, lint, build, E2E, and archi
 - Long-running processing must be cancellable, observable, and recoverable.
 - Browser memory pressure must be treated as a first-class design constraint.
 - Accessibility, privacy, and testability are product requirements.
+- Preserve the documented visual design baseline for UI changes.
 
 ## Development Commands
 
@@ -48,4 +50,5 @@ The project now has a Vite, React, TypeScript, test, lint, build, E2E, and archi
 - `npm run arch`: run architecture boundary checks.
 - `npm run build`: build the production bundle.
 - `npm run test:e2e`: run Playwright E2E and accessibility smoke tests.
+
 # transformer

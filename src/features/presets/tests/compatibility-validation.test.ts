@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createAudioAssetId } from '../../../shared/domain/ids';
 import { createBitrateKbps, createSampleRateHz } from '../../../shared/domain/numbers';
-import type { TrackInspection } from '../../inspection/domain/track-inspection';
+import { assessMetadata, type TrackInspection } from '../../inspection/domain/track-inspection';
 import { builtInPresets, getDefaultPreset } from '../domain/built-in-presets';
 import { validateInspectionForPreset } from '../domain/compatibility-validation';
 import type { AudioCodec, AudioContainer } from '../domain/audio-format';
@@ -36,8 +36,9 @@ function inspection(overrides: InspectionOverrides = {}): TrackInspection {
     ...(resolved.codec === undefined ? {} : { codec: resolved.codec }),
     ...(resolved.container === undefined ? {} : { container: resolved.container }),
     ...(resolved.sampleRateHz === undefined ? {} : { sampleRateHz: resolved.sampleRateHz }),
-    metadata: {},
-    warnings: [],
+     metadata: {},
+     metadataAssessment: assessMetadata({}, 'unknown'),
+     warnings: [],
   };
 }
 
@@ -111,5 +112,12 @@ describe('validateInspectionForPreset', () => {
       expect.objectContaining({ type: 'non_preferred_bitrate' }),
     );
     expect(validation.warnings.some((warning) => warning.message.includes('320kbps'))).toBe(true);
+  });
+
+  it('warns when essential metadata is unavailable', () => {
+    const validation = validateInspectionForPreset(inspection(), getDefaultPreset());
+    expect(validation.warnings).toContainEqual(
+      expect.objectContaining({ type: 'metadata_incomplete' }),
+    );
   });
 });

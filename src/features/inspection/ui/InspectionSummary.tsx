@@ -28,6 +28,15 @@ export function InspectionSummary({ inspections }: InspectionSummaryProps) {
               {inspection.sampleRateHz ? ` ${inspection.sampleRateHz}hz` : ' sample rate unknown'} ·{' '}
               {inspection.channels ? `${inspection.channels} channels` : 'channels unknown'}
             </span>
+            {inspection.metadata.title || inspection.metadata.artist || inspection.metadata.album ? (
+              <span>
+                {[inspection.metadata.artist, inspection.metadata.title]
+                  .filter(Boolean)
+                  .join(' - ')}
+                {inspection.metadata.album ? ` (${inspection.metadata.album})` : ''}
+                {inspection.metadata.artworkPresent ? ' artwork embedded' : ''}
+              </span>
+            ) : null}
             {inspection.warnings.length > 0 ? (
               <span>{inspection.warnings.map((warning) => warning.message).join(' ')}</span>
             ) : null}

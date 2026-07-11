@@ -173,7 +173,7 @@ Key decisions:
 ## Known Limitations
 
 - Real FFmpeg conversion is not executed in automated tests with fixture audio.
-- Inspection is header-based and intentionally bounded; full metadata parsing and deep stream validation are future work.
+- Inspection is header-based and bounded, but now includes metadata assessment, metadata audit panels, report summaries, and dedicated ID3/Vorbis parser infrastructure.
 - Browser folder output depends on File System Access API support.
 - Safari/Firefox use download fallback behavior.
 - Metadata/artwork compatibility must be manually verified with representative source files and Rekordbox/CDJ hardware.
@@ -185,7 +185,9 @@ Key decisions:
 
 Good next increments:
 
-- Add deeper local metadata parsing for ID3, Vorbis comments, FLAC tags, and MP4 atoms.
+- Complete true binary ID3v2 parsing and add MP4/M4A atom parsing.
+- Extend metadata audit workflow with filtering and grouped issue presentation.
+- Add metadata findings to exported reports and preservation verification.
 - Add grouped compatibility warning presentation if warning volume becomes noisy with large batches.
 - Add settings for output extension preference if `.aif` is desired instead of `.aiff`.
 - Add optional report CSV export if useful for library audits.

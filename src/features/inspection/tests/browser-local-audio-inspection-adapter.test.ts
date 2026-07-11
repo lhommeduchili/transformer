@@ -66,6 +66,19 @@ describe('browser local audio inspection adapter', () => {
     expect(inspection?.warnings).toEqual([]);
   });
 
+  it('extracts basic id3 metadata when present', async () => {
+    const registry = createImportedFileRegistry();
+    const audioAsset = asset('mp3');
+    const payload = new TextEncoder().encode('TIT2 Test Title TPE1 Test Artist APIC');
+    const bytes = new Uint8Array(10 + payload.length + 4);
+    bytes.set([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, payload.length], 0);
+    bytes.set(payload, 10);
+    bytes.set([0xff, 0xfb, 0x90, 0x64], 10 + payload.length);
+    registry.register(audioAsset.id,new File([blobPart(bytes)],audioAsset.sourceName));
+    const [inspection] = await createBrowserLocalAudioInspectionAdapter(registry).inspect([audioAsset]);
+    expect(inspection?.metadata.artworkPresent).toBe(true);
+  });
+
   it('falls back to the asset extension when the original file is unavailable', async () => {
     const [inspection] = await createBrowserLocalAudioInspectionAdapter(
       createImportedFileRegistry(),

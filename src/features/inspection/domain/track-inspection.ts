@@ -10,6 +10,14 @@ export type TrackMetadata = {
   readonly year?: string;
   readonly genre?: string;
   readonly trackNumber?: string;
+  readonly artworkPresent?: boolean;
+};
+
+export type MetadataAssessment = {
+  readonly completeness: 'complete' | 'partial' | 'missing';
+  readonly sourceFormat: 'id3' | 'vorbis' | 'mp4' | 'unknown';
+  readonly missingFields: readonly ('title' | 'artist' | 'album')[];
+  readonly artwork: 'present' | 'missing' | 'unknown';
 };
 
 export type TrackInspection = {
@@ -21,8 +29,31 @@ export type TrackInspection = {
   readonly codec?: AudioCodec;
   readonly container?: AudioContainer;
   readonly metadata: TrackMetadata;
+  readonly metadataAssessment: MetadataAssessment;
   readonly warnings: readonly CompatibilityWarning[];
 };
+
+export function assessMetadata(
+  metadata: TrackMetadata,
+  sourceFormat: MetadataAssessment['sourceFormat'],
+): MetadataAssessment {
+  const missingFields = (['title', 'artist', 'album'] as const).filter(
+    (field) => !metadata[field],
+  );
+
+  return {
+    completeness:
+      missingFields.length === 0 ? 'complete' : missingFields.length === 3 ? 'missing' : 'partial',
+    sourceFormat,
+    missingFields,
+    artwork:
+      metadata.artworkPresent === true
+        ? 'present'
+        : metadata.artworkPresent === false
+          ? 'missing'
+          : 'unknown',
+  };
+}
 
 export function createTrackInspection(input: TrackInspection): TrackInspection {
   return input;

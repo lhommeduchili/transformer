@@ -109,6 +109,7 @@ describe('buildConversionReport', () => {
     expect(report.preset.name).toBe('cdj / rekordbox safe aiff');
     expect(report.destination.name).toBe('prepared aiff');
     expect(report.summary).toMatchObject({ total: 1, completed: 1, failed: 0 });
+    expect(report.metadataSummary).toEqual({ complete: 0, partial: 0, missing: 0 });
     expect(report.jobs[0]).toMatchObject({ sourceName: 'Track.flac', outputName: 'Track.aiff' });
   });
 

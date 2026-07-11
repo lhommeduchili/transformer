@@ -29,6 +29,7 @@ export type CompatibilityWarning = {
     | 'metadata_may_be_unsupported'
     | 'filename_requires_sanitization'
     | 'inspection_incomplete'
+    | 'metadata_incomplete'
     | 'planned_conversion';
   readonly message: string;
 };

@@ -11,6 +11,8 @@ import { inspectAudioAssets } from '../features/inspection/application/inspect-a
 import type { TrackInspection } from '../features/inspection/domain/track-inspection';
 import { createBrowserLocalAudioInspectionAdapter } from '../features/inspection/infrastructure/browser-local-audio-inspection-adapter';
 import { InspectionSummary } from '../features/inspection/ui/InspectionSummary';
+import { MetadataAuditPanel } from '../features/inspection/ui/MetadataAuditPanel';
+import { MetadataIssuesPanel } from '../features/inspection/ui/MetadataIssuesPanel';
 import { createImportedFileRegistry } from '../features/import/application/imported-file-registry';
 import { createFfmpegAudioConversionAdapter } from '../features/conversion/infrastructure/ffmpeg-audio-conversion-adapter';
 import { createConversionWorkerRuntime } from '../features/conversion/infrastructure/worker-runtime-adapter';
@@ -281,6 +283,8 @@ export function App() {
       {assets.length > 0 ? (
         <section className="details-stack" aria-label="secondary details">
           <InspectionSummary inspections={inspections} />
+          <MetadataAuditPanel inspections={inspections} />
+          <MetadataIssuesPanel inspections={inspections} />
           <CompatibilitySummary validations={validations} />
           <OutputFilenamePreview previews={filenamePreviews} />
         </section>

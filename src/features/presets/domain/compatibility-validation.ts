@@ -95,6 +95,13 @@ export function validateInspectionForPreset(
     });
   }
 
+  if (inspection.metadataAssessment.completeness !== 'complete') {
+    warnings.push({
+      type: 'metadata_incomplete',
+      message: `metadata is ${inspection.metadataAssessment.completeness}; missing ${inspection.metadataAssessment.missingFields.join(', ')}.`,
+    });
+  }
+
   return { inspection, warnings };
 }
 

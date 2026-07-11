@@ -43,5 +43,10 @@ export type ConversionReport = {
   readonly preset: ConversionReportPreset;
   readonly destination: OutputDestination;
   readonly summary: ConversionReportStatusSummary;
+  readonly metadataSummary: {
+    readonly complete: number;
+    readonly partial: number;
+    readonly missing: number;
+  };
   readonly jobs: readonly ConversionReportJob[];
 };

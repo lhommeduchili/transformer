@@ -1,5 +1,6 @@
 import type { DateTimeIso } from '../../../shared/domain/date-time';
 import type { AudioAsset } from '../../import/domain/audio-asset';
+import type { TrackInspection } from '../../inspection/domain/track-inspection';
 import type { OutputDestination } from '../../output/application/output-destination';
 import type { ConversionPreset } from '../../presets/domain/conversion-preset';
 import type { ConversionQueue } from '../../queue/domain/conversion-queue';
@@ -11,6 +12,7 @@ export type BuildConversionReportInput = {
   readonly preset: ConversionPreset;
   readonly destination: OutputDestination;
   readonly generatedAt: DateTimeIso;
+  readonly inspections?: readonly TrackInspection[];
 };
 
 export function buildConversionReport(input: BuildConversionReportInput): ConversionReport {
@@ -34,6 +36,7 @@ export function buildConversionReport(input: BuildConversionReportInput): Conver
     },
     destination: input.destination,
     summary: summarizeJobs(input.queue),
+    metadataSummary: summarizeMetadata(input.inspections ?? []),
     jobs: input.queue.jobs.map((job) => ({
       jobId: job.id,
       assetId: job.assetId,
@@ -45,6 +48,16 @@ export function buildConversionReport(input: BuildConversionReportInput): Conver
       errors: job.errors.map((error) => error.message),
     })),
   };
+}
+
+function summarizeMetadata(inspections: readonly TrackInspection[]) {
+  return inspections.reduce(
+    (summary, inspection) => {
+      summary[inspection.metadataAssessment.completeness] += 1;
+      return summary;
+    },
+    { complete: 0, partial: 0, missing: 0 },
+  );
 }
 
 function summarizeJobs(queue: ConversionQueue): ConversionReportStatusSummary {

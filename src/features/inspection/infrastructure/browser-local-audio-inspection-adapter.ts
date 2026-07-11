@@ -8,7 +8,8 @@ import type { AudioAsset } from '../../import/domain/audio-asset';
 import type { AudioCodec, AudioContainer } from '../../presets/domain/audio-format';
 import type { CompatibilityWarning } from '../../presets/domain/compatibility-profile';
 import type { AudioInspectionPort } from '../application/audio-inspection-port';
-import { createTrackInspection, type TrackInspection } from '../domain/track-inspection';
+import { assessMetadata, createTrackInspection, type TrackInspection, type TrackMetadata } from '../domain/track-inspection';
+import { parseId3Metadata, parseVorbisMetadata } from './metadata-parsers';
 
 const headerBytesToRead = 128 * 1024;
 
@@ -20,6 +21,8 @@ type HeaderInspection = {
   readonly bitrateKbps?: number | undefined;
   readonly durationMs?: number | undefined;
   readonly complete: boolean;
+  readonly metadata?: TrackMetadata;
+  readonly metadataFormat?: 'id3' | 'vorbis' | 'mp4' | 'unknown';
 };
 
 export function createBrowserLocalAudioInspectionAdapter(
@@ -52,7 +55,11 @@ async function inspectAsset(
     ...(inspection?.channels === undefined ? {} : { channels: inspection.channels }),
     codec: inspection?.codec ?? fallbackFormat.codec,
     container: inspection?.container ?? fallbackFormat.container,
-    metadata: {},
+    metadata: inspection?.metadata ?? {},
+    metadataAssessment: assessMetadata(
+      inspection?.metadata ?? {},
+      inspection?.metadataFormat ?? 'unknown',
+    ),
     warnings: warningsForInspection(isComplete),
   });
 }
@@ -190,6 +197,7 @@ function inspectFlac(header: Uint8Array): HeaderInspection {
     (BigInt(byteAt(header, streamInfo + 16)) << 8n) |
     BigInt(byteAt(header, streamInfo + 17));
 
+  const metadata = parseVorbisMetadata(header);
   return {
     container: 'flac',
     codec: 'flac',
@@ -199,6 +207,8 @@ function inspectFlac(header: Uint8Array): HeaderInspection {
       sampleRateHz > 0 && totalSamples > 0n
         ? (Number(totalSamples) / sampleRateHz) * 1000
         : undefined,
+    metadata,
+    metadataFormat: 'vorbis',
     complete: sampleRateHz > 0 && channels > 0,
   };
 }
@@ -234,10 +244,13 @@ function inspectMp3(header: Uint8Array): HeaderInspection {
     codec: 'mp3',
     sampleRateHz,
     bitrateKbps,
+    metadata: parseId3Metadata(header),
+    metadataFormat: 'id3',
     channels: channelMode === 3 ? 1 : 2,
     complete: sampleRateHz !== undefined && bitrateKbps !== undefined,
   };
 }
+
 
 function findMp3Frame(header: Uint8Array): number | undefined {
   let offset =

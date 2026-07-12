@@ -23,6 +23,9 @@ Use this file when restarting Antigravity or another agent. It captures the curr
 - Drop/audio box uses normal square border with phosphor green hover/focus/drag feedback.
 - Queue uses a full-width ASCII global progress meter with `░` and `█` ending one character before the percent.
 - Individual queue jobs use text status plus spinner, not filled/native progress bars.
+- The `transformer` title now uses layered composition with the animated `made with ♥ by alφ` signature rendered as an independent overlay layer using blend/compositing behavior.
+- Mobile workflow order is preserved as: tracks -> preset -> destination -> convert.
+- Disclosure panels now share reusable disclosure-content spacing rules.
 - Added regression coverage for ASCII progress and keyboard-reachable imported track removal/clear.
 - Documented all aesthetic decisions in `docs/ux/visual-design.md`.
 

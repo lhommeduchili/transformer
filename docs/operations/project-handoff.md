@@ -168,12 +168,15 @@ Key decisions:
 - Uploaded track separators appear only between tracks.
 - Queue progress uses a full-width ASCII meter with `░` and `█`, ending one character before the percent.
 - Individual queue jobs use status text and an active spinner, not filled progress bars.
+- The header uses layered composition: `transformer` remains the foreground editorial layer while the animated `made with ♥ by alφ` signature is an independent overlay layer using blend/compositing behavior.
+- Mobile workflow order should remain: tracks → preset → destination → convert.
+- Disclosure panels share reusable disclosure-content spacing rules instead of panel-specific body spacing.
 - Accessibility requirements remain non-negotiable: keyboard access, visible focus, status announcements, reduced-motion behavior, and axe checks.
 
 ## Known Limitations
 
 - Real FFmpeg conversion is not executed in automated tests with fixture audio.
-- Inspection is header-based and bounded, but now includes metadata assessment, metadata audit panels, report summaries, and dedicated ID3/Vorbis parser infrastructure.
+- Inspection is header-based and bounded, but now includes metadata assessment, metadata audit panels, report summaries, binary ID3 parsing, lightweight MP4 metadata extraction, and dedicated parser infrastructure.
 - Browser folder output depends on File System Access API support.
 - Safari/Firefox use download fallback behavior.
 - Metadata/artwork compatibility must be manually verified with representative source files and Rekordbox/CDJ hardware.

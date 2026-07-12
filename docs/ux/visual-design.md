@@ -14,6 +14,7 @@ Use:
 - Lowercase labels.
 - Terminal-style status language.
 - Editorial contrast in the main title.
+- Layered editorial composition between the `transformer` title and the animated signature.
 - Sparse motion that feels like machine feedback.
 
 Avoid:
@@ -46,6 +47,13 @@ Use three typographic modes:
 - Terminal monospace for status, filenames, counters, queue rows, progress, buttons, selects, and compact operational text.
 - System sans for regular body rhythm where needed.
 
+The header composition uses layered typography:
+
+- `transformer` remains the stable foreground layer.
+- The animated `made with ♥ by alφ` signature is rendered as an independent overlay layer.
+- Overlap interaction should use compositing/blend behavior rather than layout tricks.
+- The signature animation should preserve stable layout dimensions while typing/deleting.
+
 Headings and labels should remain lowercase unless the content is a filename, preset name, browser/API name, or user-provided text.
 
 ## Layout Principles
@@ -53,7 +61,9 @@ Headings and labels should remain lowercase unless the content is a filename, pr
 - Keep the single-page workbench structure.
 - Keep import and queue as the primary workflow surface.
 - Keep setup controls visually secondary but immediately reachable.
+- On mobile layouts, preserve workflow order: tracks → preset → destination → convert.
 - Collapsible detail panels should stay compact and text-first.
+- Disclosure body spacing should come from shared reusable disclosure-content styling, not panel-specific exceptions.
 - Uploaded tracks live inside the audio/drop box.
 - Track separators appear only between uploaded tracks, never after the heading or after the last row.
 - Prefer direct information density over explanatory prose.
@@ -90,6 +100,7 @@ Headings and labels should remain lowercase unless the content is a filename, pr
 
 - Motion should communicate machine activity, not decoration.
 - The signature cursor and queue spinner are acceptable baseline motion.
+- The signature animation should feel machine-like and editorial, not playful.
 - Respect `prefers-reduced-motion`; animations should effectively stop for reduced-motion users.
 
 ## Accessibility Requirements

@@ -11,6 +11,7 @@ describe('MetadataAuditPanel', () => {
       />,
     );
 
+    expect(screen.getByText(/metadata audit/i)).toBeInTheDocument();
     expect(screen.getByText(/missing title/i)).toBeInTheDocument();
   });
 });

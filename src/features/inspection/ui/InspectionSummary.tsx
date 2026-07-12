@@ -17,7 +17,7 @@ export function InspectionSummary({ inspections }: InspectionSummaryProps) {
         </span>
       </summary>
 
-      <ul className="detail-list" aria-label="inspection results">
+      <ul className="disclosure-content detail-list" aria-label="inspection results">
         {inspections.map((inspection) => (
           <li key={inspection.assetId}>
             <strong>
@@ -28,7 +28,9 @@ export function InspectionSummary({ inspections }: InspectionSummaryProps) {
               {inspection.sampleRateHz ? ` ${inspection.sampleRateHz}hz` : ' sample rate unknown'} ·{' '}
               {inspection.channels ? `${inspection.channels} channels` : 'channels unknown'}
             </span>
-            {inspection.metadata.title || inspection.metadata.artist || inspection.metadata.album ? (
+            {inspection.metadata.title ||
+            inspection.metadata.artist ||
+            inspection.metadata.album ? (
               <span>
                 {[inspection.metadata.artist, inspection.metadata.title]
                   .filter(Boolean)

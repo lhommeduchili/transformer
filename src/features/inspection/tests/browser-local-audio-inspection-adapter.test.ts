@@ -69,13 +69,17 @@ describe('browser local audio inspection adapter', () => {
   it('extracts basic id3 metadata when present', async () => {
     const registry = createImportedFileRegistry();
     const audioAsset = asset('mp3');
-    const payload = new TextEncoder().encode('TIT2 Test Title TPE1 Test Artist APIC');
-    const bytes = new Uint8Array(10 + payload.length + 4);
-    bytes.set([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, payload.length], 0);
-    bytes.set(payload, 10);
-    bytes.set([0xff, 0xfb, 0x90, 0x64], 10 + payload.length);
-    registry.register(audioAsset.id,new File([blobPart(bytes)],audioAsset.sourceName));
-    const [inspection] = await createBrowserLocalAudioInspectionAdapter(registry).inspect([audioAsset]);
+    const apicFrame = new Uint8Array([
+      0x41, 0x50, 0x49, 0x43, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x02,
+    ]);
+    const bytes = new Uint8Array(10 + apicFrame.length + 4);
+    bytes.set([0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, apicFrame.length], 0);
+    bytes.set(apicFrame, 10);
+    bytes.set([0xff, 0xfb, 0x90, 0x64], 10 + apicFrame.length);
+    registry.register(audioAsset.id, new File([blobPart(bytes)], audioAsset.sourceName));
+    const [inspection] = await createBrowserLocalAudioInspectionAdapter(registry).inspect([
+      audioAsset,
+    ]);
     expect(inspection?.metadata.artworkPresent).toBe(true);
   });
 
@@ -89,6 +93,30 @@ describe('browser local audio inspection adapter', () => {
     expect(inspection?.warnings).toContainEqual(
       expect.objectContaining({ type: 'inspection_incomplete' }),
     );
+  });
+
+  it('extracts basic mp4 metadata when present', async () => {
+    const registry = createImportedFileRegistry();
+    const audioAsset = asset('m4a');
+
+    registry.register(
+      audioAsset.id,
+      new File(
+        [
+          blobPart(
+            new TextEncoder().encode('\u0000\u0000\u0000\u0018ftypM4A ©nam Song ©ART Artist'),
+          ),
+        ],
+        audioAsset.sourceName,
+      ),
+    );
+
+    const [inspection] = await createBrowserLocalAudioInspectionAdapter(registry).inspect([
+      audioAsset,
+    ]);
+
+    expect(inspection?.metadata.title).toContain('Song');
+    expect(inspection?.metadataAssessment.sourceFormat).toBe('mp4');
   });
 });
 

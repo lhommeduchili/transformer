@@ -111,12 +111,24 @@ code {
 }
 
 .app-bar {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 0.75rem;
   border-bottom: 2px solid var(--color-bone);
   padding-bottom: 0.7rem;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+#app-title {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--color-bone);
+  font-size: clamp(4.25rem, 10vw, 6.8rem);
+  line-height: 0.88;
+  white-space: nowrap;
 }
 
 .signature-line,
@@ -138,19 +150,23 @@ summary span:last-child,
 }
 
 .signature-line {
+  position: absolute;
+  right: 0;
+  bottom: 0.9rem;
   display: inline-flex;
   width: 21ch;
-  max-width: calc(100vw - 1.4rem);
   align-items: center;
   justify-content: flex-start;
-  justify-self: end;
   margin: 0;
   color: var(--color-phosphor);
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   text-align: left;
+  mix-blend-mode: difference;
   text-shadow: 0 0 1.1rem rgb(101 214 133 / 18%);
   white-space: nowrap;
+  z-index: 3;
+  pointer-events: none;
 }
 
 .signature-cursor {
@@ -158,7 +174,7 @@ summary span:last-child,
   width: 0.55em;
   height: 1.1em;
   margin-left: 0.28rem;
-  background: var(--color-phosphor);
+  background: currentColor;
   transform: translateY(0.12em);
   animation: signature-cursor 1s step-end infinite;
 }
@@ -201,6 +217,12 @@ summary span:last-child,
 .details-stack {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
+}
+
+.details-column {
+  display: grid;
+  gap: 0.8rem;
+  align-content: start;
 }
 
 .panel,
@@ -672,8 +694,13 @@ details[open] summary::after {
   content: '-';
 }
 
-.disclosure-panel .detail-list {
-  padding: 0 0.85rem 0.35rem;
+.disclosure-content {
+  margin: 0;
+  padding: 0.85rem;
+}
+
+.disclosure-content.detail-list {
+  padding-block: 0.25rem 0.35rem;
 }
 
 dl[aria-label='report summary'] {
@@ -709,6 +736,16 @@ dd {
 }
 
 @media (max-width: 900px) {
+  #app-title {
+    font-size: clamp(4.6rem, 15vw, 5rem);
+  }
+
+  .signature-line {
+    right: 0;
+    bottom: 0.82rem;
+    font-size: 0.68rem;
+  }
+
   .app-shell {
     padding: 0.7rem;
   }
@@ -717,6 +754,15 @@ dd {
   .workbench,
   .details-stack {
     grid-template-columns: 1fr;
+  }
+
+  .workbench-primary,
+  .workbench-setup {
+    display: contents;
+  }
+
+  .queue-panel-slot {
+    order: 3;
   }
 
   .app-bar {

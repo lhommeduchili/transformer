@@ -8,8 +8,13 @@ import type { AudioAsset } from '../../import/domain/audio-asset';
 import type { AudioCodec, AudioContainer } from '../../presets/domain/audio-format';
 import type { CompatibilityWarning } from '../../presets/domain/compatibility-profile';
 import type { AudioInspectionPort } from '../application/audio-inspection-port';
-import { assessMetadata, createTrackInspection, type TrackInspection, type TrackMetadata } from '../domain/track-inspection';
-import { parseId3Metadata, parseVorbisMetadata } from './metadata-parsers';
+import {
+  assessMetadata,
+  createTrackInspection,
+  type TrackInspection,
+  type TrackMetadata,
+} from '../domain/track-inspection';
+import { parseId3Metadata, parseMp4Metadata, parseVorbisMetadata } from './metadata-parsers';
 
 const headerBytesToRead = 128 * 1024;
 
@@ -214,10 +219,14 @@ function inspectFlac(header: Uint8Array): HeaderInspection {
 }
 
 function inspectM4a(header: Uint8Array): HeaderInspection {
+  const metadata = parseMp4Metadata(header);
+
   return {
     container:
       matchesAscii(header, 8, 'M4A ') || matchesAscii(header, 8, 'isom') ? 'm4a' : 'unknown',
     codec: 'aac',
+    metadata,
+    metadataFormat: 'mp4',
     complete: false,
   };
 }
@@ -250,7 +259,6 @@ function inspectMp3(header: Uint8Array): HeaderInspection {
     complete: sampleRateHz !== undefined && bitrateKbps !== undefined,
   };
 }
-
 
 function findMp3Frame(header: Uint8Array): number | undefined {
   let offset =

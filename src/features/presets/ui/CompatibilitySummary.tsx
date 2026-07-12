@@ -22,7 +22,7 @@ export function CompatibilitySummary({ validations }: CompatibilitySummaryProps)
         </span>
       </summary>
 
-      <ul className="detail-list" aria-label="compatibility warnings">
+      <ul className="disclosure-content detail-list" aria-label="compatibility warnings">
         {validations.map((validation) => (
           <li key={validation.inspection.assetId}>
             <strong>{validation.inspection.container ?? 'unknown'}</strong>

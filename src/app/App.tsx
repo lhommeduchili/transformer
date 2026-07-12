@@ -239,25 +239,27 @@ export function App() {
               void handleFilesSelected(files);
             }}
           />
-          <QueuePanel
-            assets={assets}
-            previews={filenamePreviews}
-            selectedPreset={selectedPreset}
-            queue={queue}
-            error={queueError}
-            onPlanQueue={(previews, preset) => {
-              if (configureRealExecutor(preset)) {
-                planQueue(previews, preset);
-              }
-            }}
-            onStartQueue={startQueue}
-            onPauseQueue={pauseQueue}
-            onResumeQueue={resumeQueue}
-            onCancelQueue={cancelQueue}
-            onRetryFailed={retryFailedJobs}
-            onResetQueue={resetQueue}
-            onSkipJob={skipQueueJob}
-          />
+          <div className="queue-panel-slot">
+            <QueuePanel
+              assets={assets}
+              previews={filenamePreviews}
+              selectedPreset={selectedPreset}
+              queue={queue}
+              error={queueError}
+              onPlanQueue={(previews, preset) => {
+                if (configureRealExecutor(preset)) {
+                  planQueue(previews, preset);
+                }
+              }}
+              onStartQueue={startQueue}
+              onPauseQueue={pauseQueue}
+              onResumeQueue={resumeQueue}
+              onCancelQueue={cancelQueue}
+              onRetryFailed={retryFailedJobs}
+              onResetQueue={resetQueue}
+              onSkipJob={skipQueueJob}
+            />
+          </div>
         </div>
 
         <aside className="workbench-setup" aria-label="conversion setup">
@@ -282,11 +284,17 @@ export function App() {
 
       {assets.length > 0 ? (
         <section className="details-stack" aria-label="secondary details">
-          <InspectionSummary inspections={inspections} />
-          <MetadataAuditPanel inspections={inspections} />
-          <MetadataIssuesPanel inspections={inspections} />
-          <CompatibilitySummary validations={validations} />
-          <OutputFilenamePreview previews={filenamePreviews} />
+          <div className="details-column">
+            <InspectionSummary inspections={inspections} />
+            <CompatibilitySummary validations={validations} />
+          </div>
+          <div className="details-column">
+            <MetadataAuditPanel inspections={inspections} />
+            <OutputFilenamePreview previews={filenamePreviews} />
+          </div>
+          <div className="details-column">
+            <MetadataIssuesPanel inspections={inspections} />
+          </div>
         </section>
       ) : null}
     </main>

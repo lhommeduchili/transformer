@@ -17,7 +17,7 @@ export function OutputFilenamePreview({ previews }: OutputFilenamePreviewProps) 
         </span>
       </summary>
 
-      <ul className="detail-list" aria-label="output filename previews">
+      <ul className="disclosure-content detail-list" aria-label="output filename previews">
         {previews.map((preview) => (
           <li key={preview.asset.id}>
             <strong>{preview.asset.sourceName}</strong>

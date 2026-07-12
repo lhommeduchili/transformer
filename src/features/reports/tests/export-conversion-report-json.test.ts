@@ -25,6 +25,7 @@ describe('exportConversionReportJson', () => {
       },
       destination: { type: 'download_fallback', name: 'Browser downloads' },
       summary: { total: 0, completed: 0, failed: 0, skipped: 0, cancelled: 0, pending: 0 },
+      metadataSummary: { complete: 0, partial: 0, missing: 0 },
       jobs: [],
     };
 

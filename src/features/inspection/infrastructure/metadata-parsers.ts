@@ -3,15 +3,15 @@ import type { TrackMetadata } from '../domain/track-inspection';
 export function parseId3Metadata(header: Uint8Array): TrackMetadata {
   const frames = parseId3Frames(header);
 
-  return {
-    ...(frames.get('TIT2') ? { title: frames.get('TIT2') } : {}),
-    ...(frames.get('TPE1') ? { artist: frames.get('TPE1') } : {}),
-    ...(frames.get('TALB') ? { album: frames.get('TALB') } : {}),
-    ...(frames.get('TCON') ? { genre: frames.get('TCON') } : {}),
-    ...(frames.get('TRCK') ? { trackNumber: frames.get('TRCK') } : {}),
-    ...(frames.get('TDRC') ? { year: frames.get('TDRC') } : {}),
+  return buildMetadata({
+    title: frames.get('TIT2'),
+    artist: frames.get('TPE1'),
+    album: frames.get('TALB'),
+    genre: frames.get('TCON'),
+    trackNumber: frames.get('TRCK'),
+    year: frames.get('TDRC'),
     artworkPresent: frames.has('APIC'),
-  };
+  });
 }
 
 export function parseVorbisMetadata(header: Uint8Array): TrackMetadata {
@@ -93,7 +93,7 @@ function decodeTextFrame(payload: Uint8Array): string | undefined {
   return normalized.length > 0 ? normalized : undefined;
 }
 
-function buildMetadata(values: Record<string, string | undefined>): TrackMetadata {
+function buildMetadata(values: Record<string, string | boolean | undefined>): TrackMetadata {
   return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined));
 }
 

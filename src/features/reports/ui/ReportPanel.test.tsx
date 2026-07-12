@@ -25,6 +25,7 @@ function fixtureReport(): ConversionReport {
     },
     destination: { type: 'directory', name: 'prepared aiff' },
     summary: { total: 2, completed: 1, failed: 1, skipped: 0, cancelled: 0, pending: 0 },
+    metadataSummary: { complete: 0, partial: 0, missing: 0 },
     jobs: [],
   };
 }

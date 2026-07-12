@@ -37,9 +37,7 @@ export function assessMetadata(
   metadata: TrackMetadata,
   sourceFormat: MetadataAssessment['sourceFormat'],
 ): MetadataAssessment {
-  const missingFields = (['title', 'artist', 'album'] as const).filter(
-    (field) => !metadata[field],
-  );
+  const missingFields = (['title', 'artist', 'album'] as const).filter((field) => !metadata[field]);
 
   return {
     completeness:

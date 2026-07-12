@@ -36,9 +36,9 @@ function inspection(overrides: InspectionOverrides = {}): TrackInspection {
     ...(resolved.codec === undefined ? {} : { codec: resolved.codec }),
     ...(resolved.container === undefined ? {} : { container: resolved.container }),
     ...(resolved.sampleRateHz === undefined ? {} : { sampleRateHz: resolved.sampleRateHz }),
-     metadata: {},
-     metadataAssessment: assessMetadata({}, 'unknown'),
-     warnings: [],
+    metadata: {},
+    metadataAssessment: assessMetadata({}, 'unknown'),
+    warnings: [],
   };
 }
 

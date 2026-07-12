@@ -3,7 +3,11 @@ import type { AudioAsset } from '../../import/domain/audio-asset';
 import type { AudioCodec, AudioContainer } from '../../presets/domain/audio-format';
 import type { CompatibilityWarning } from '../../presets/domain/compatibility-profile';
 import type { AudioInspectionPort } from '../application/audio-inspection-port';
-import { assessMetadata, createTrackInspection, type TrackInspection } from '../domain/track-inspection';
+import {
+  assessMetadata,
+  createTrackInspection,
+  type TrackInspection,
+} from '../domain/track-inspection';
 
 function trustedSampleRate() {
   const sampleRate = createSampleRateHz(44100);

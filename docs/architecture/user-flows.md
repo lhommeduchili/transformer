@@ -3,10 +3,9 @@
 ## First-Time Use
 
 1. User opens the app.
-2. App explains local-only processing.
-3. App checks browser capabilities.
-4. User sees supported and unsupported capabilities.
-5. User imports files or folders.
+2. App checks browser capabilities.
+3. App adapts import and output controls to supported capabilities.
+4. User imports files or folders.
 
 ## Batch Import
 

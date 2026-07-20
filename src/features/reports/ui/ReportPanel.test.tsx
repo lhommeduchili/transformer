@@ -69,9 +69,7 @@ describe('ReportPanel', () => {
 
     expect(screen.getByText('total')).toBeInTheDocument();
     expect(screen.getByText('2')).toBeInTheDocument();
-    fireEvent.click(screen.getByText(/job details/i));
-    expect(screen.getByText(/track.flac/i)).toBeInTheDocument();
-    expect(screen.getByText(/missing album/i)).toBeInTheDocument();
+    expect(screen.queryByText(/job details/i)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /export json/i }));
 
     expect(onExportJson).toHaveBeenCalledTimes(1);

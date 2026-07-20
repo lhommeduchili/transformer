@@ -13,6 +13,7 @@
   --color-cyan: #5eb5bd;
   --color-line: rgb(227 221 211 / 22%);
   --color-line-strong: rgb(227 221 211 / 48%);
+  --space-section: 0.8rem;
   --font-terminal:
     'SFMono-Regular', 'JetBrains Mono', 'Geist Mono', Consolas, 'Liberation Mono', monospace;
   --font-editorial: Georgia, 'Times New Roman', serif;
@@ -106,7 +107,7 @@ code {
   min-height: 100vh;
   margin: 0 auto;
   padding: clamp(0.8rem, 2.8vw, 2.4rem);
-  gap: 0.8rem;
+  gap: var(--space-section);
   align-content: start;
 }
 
@@ -195,53 +196,28 @@ summary span:last-child,
   color: var(--color-phosphor);
 }
 
-.capability-notice {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.35rem 1rem;
-  border-bottom: 1px solid var(--color-line);
-  padding: 0.25rem 0 0.65rem;
-  font-family: var(--font-terminal);
-  font-size: 0.68rem;
-  text-transform: lowercase;
-}
-
-.capability-notice h2,
-.capability-notice p,
-.capability-notice ul {
-  margin: 0;
-}
-
-.capability-notice p {
-  color: var(--color-phosphor);
-}
-
-.capability-notice ul {
-  display: flex;
-  grid-column: 1 / -1;
-  flex-wrap: wrap;
-  gap: 0.35rem 1rem;
-  padding: 0;
-  list-style: none;
-}
-
 .workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
-  gap: 0.8rem;
-  align-items: start;
+  gap: var(--space-section);
+  align-items: stretch;
 }
 
 .workbench-primary,
 .workbench-setup,
 .details-stack {
   display: grid;
-  gap: 0.8rem;
+  gap: var(--space-section);
+}
+
+.workbench-primary,
+.workbench-setup {
+  grid-template-rows: auto 1fr;
 }
 
 .setup-controls-stack {
   display: grid;
-  gap: 0.8rem;
+  gap: var(--space-section);
 }
 
 .details-stack {
@@ -251,8 +227,12 @@ summary span:last-child,
 
 .details-column {
   display: grid;
-  gap: 0.8rem;
+  gap: var(--space-section);
   align-content: start;
+}
+
+.queue-panel-slot {
+  display: grid;
 }
 
 .panel,
@@ -282,7 +262,7 @@ summary span:last-child,
 .drop-zone {
   display: grid;
   grid-template-columns: 1fr;
-  min-height: max(var(--drop-zone-min-height, 15rem), 15rem);
+  min-height: 15rem;
   align-items: stretch;
   gap: 1rem;
   border: 1px solid var(--color-line-strong);

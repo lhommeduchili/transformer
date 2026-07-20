@@ -7,8 +7,6 @@ test('loads the import and inspection shell', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: /transformer/i })).toBeVisible();
   await expect(page.locator('.signature-line .visually-hidden')).toHaveText('made with ♥ by alφ');
-  await expect(page.getByRole('heading', { name: /local capabilities/i })).toBeVisible();
-  await expect(page.getByText(/audio stays on this device/i)).toBeVisible();
   await expect(page.getByRole('heading', { name: /drop audio/i })).toBeVisible();
 });
 
@@ -21,7 +19,6 @@ test('uses browser download output when direct folder access is unavailable', as
   });
   await page.goto('/');
 
-  await expect(page.getByText(/output: browser downloads/i)).toBeVisible();
   await expect(page.getByRole('heading', { name: /^destination$/i }).locator('..')).toContainText(
     /browser downloads/i,
   );

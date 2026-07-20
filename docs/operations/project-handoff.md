@@ -173,6 +173,7 @@ Key decisions:
 - Individual queue jobs use status text and an active spinner, not filled progress bars.
 - The header uses layered composition: `transformer` remains the foreground editorial layer while the animated `made with ♥ by alφ` signature is an independent overlay layer using blend/compositing behavior.
 - Mobile workflow order should remain: tracks → preset → destination → convert.
+- Major workbench regions use a shared spacing token; primary desktop columns stretch to the same bottom edge as content changes.
 - Disclosure panels share reusable disclosure-content spacing rules instead of panel-specific body spacing.
 - Accessibility requirements remain non-negotiable: keyboard access, visible focus, status announcements, reduced-motion behavior, and axe checks.
 
@@ -186,7 +187,7 @@ Key decisions:
 - The visual design baseline is documented, but visual regression coverage is still manual.
 - No persistent library database exists; settings persistence is currently limited to the last-selected preset.
 - Default conversion concurrency is intentionally `1`.
-- A dedicated folder-picker control and persistent chronological audit-event history are not implemented; per-job report diagnostics now expose statuses, attempts, metadata findings, and errors.
+- A dedicated folder-picker control and persistent chronological audit-event history are not implemented; per-job diagnostics remain available in the queue and exported report rather than a separate report disclosure.
 - E2E coverage now includes real generated-WAV conversion and report export, but browser-level pause/resume, cancellation, retry, recursive folder import, and direct-folder conflict handling remain uncovered.
 
 ## Recommended Next Work

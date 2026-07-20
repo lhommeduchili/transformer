@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   importAudioAssets,
@@ -47,7 +47,6 @@ import {
 } from '../shared/infrastructure/browser/crypto-id-generator';
 import { createSystemClock } from '../shared/infrastructure/browser/system-clock';
 import { createBrowserCapabilitiesAdapter } from '../shared/infrastructure/browser/browser-capabilities-adapter';
-import { BrowserCapabilityNotice } from '../shared/ui/BrowserCapabilityNotice';
 import { createBrowserPreferencesAdapter } from '../features/settings/infrastructure/browser-preferences-adapter';
 
 const fileImportAdapter = createBrowserFileImportAdapter();
@@ -79,10 +78,8 @@ function getConversionAdapter(): AudioConversionPort {
 }
 
 export function App() {
-  const setupControlsRef = useRef<HTMLDivElement>(null);
   const importChainRef = useRef(Promise.resolve());
   const importGenerationRef = useRef(0);
-  const [setupControlsHeight, setSetupControlsHeight] = useState<number | undefined>(undefined);
   const [assets, setAssets] = useState<readonly AudioAsset[]>([]);
   const [rejected, setRejected] = useState<readonly ImportRejection[]>([]);
   const [inspections, setInspections] = useState<readonly TrackInspection[]>([]);
@@ -120,19 +117,6 @@ export function App() {
           generatedAt: queue.completedAt ?? clock.now(),
           inspections,
         });
-
-  useEffect(() => {
-    const element = setupControlsRef.current;
-    if (element === null || typeof ResizeObserver !== 'function') return;
-
-    const observer = new ResizeObserver(([entry]) => {
-      if (entry === undefined) return;
-      setSetupControlsHeight(Math.ceil(entry.contentRect.height));
-    });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
 
   function handleFilesSelected(files: readonly File[]): Promise<void> {
     const queuedImport = importChainRef.current.then(() => importSelectedFiles(files));
@@ -244,17 +228,7 @@ export function App() {
         <HeaderSignature />
       </header>
 
-      <BrowserCapabilityNotice capabilities={browserCapabilities} />
-
-      <section
-        className="workbench"
-        aria-label="conversion workbench"
-        style={
-          setupControlsHeight === undefined
-            ? undefined
-            : ({ '--drop-zone-min-height': `${setupControlsHeight}px` } as CSSProperties)
-        }
-      >
+      <section className="workbench" aria-label="conversion workbench">
         <div className="workbench-primary">
           <ImportPanel
             assets={assets}
@@ -297,7 +271,7 @@ export function App() {
         </div>
 
         <aside className="workbench-setup" aria-label="conversion setup">
-          <div ref={setupControlsRef} className="setup-controls-stack">
+          <div className="setup-controls-stack">
             <PresetSelector
               presets={presets}
               selectedPreset={selectedPreset}

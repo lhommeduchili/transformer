@@ -3,6 +3,7 @@ import type { OutputDestination } from '../application/output-destination';
 type OutputDestinationPanelProps = {
   readonly destination: OutputDestination;
   readonly supportsFolderSelection: boolean;
+  readonly canChooseDestination?: boolean;
   readonly error: string | undefined;
   readonly onChooseDestination: () => void;
 };
@@ -10,6 +11,7 @@ type OutputDestinationPanelProps = {
 export function OutputDestinationPanel({
   destination,
   supportsFolderSelection,
+  canChooseDestination = true,
   error,
   onChooseDestination,
 }: OutputDestinationPanelProps) {
@@ -30,6 +32,7 @@ export function OutputDestinationPanel({
           className="secondary-action"
           type="button"
           onClick={onChooseDestination}
+          disabled={!canChooseDestination}
           aria-describedby={needsFolderSelection ? 'output-destination-guidance' : undefined}
         >
           choose folder

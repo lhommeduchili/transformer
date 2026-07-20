@@ -1,13 +1,19 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
+import ffmpegCoreUrl from '@ffmpeg/core?url';
+import ffmpegWasmUrl from '@ffmpeg/core/wasm?url';
 
 import type { ConversionWorkerCommand, ConversionWorkerEvent } from './conversion-worker-protocol';
 
 let ffmpeg: FFmpeg | undefined;
 let loaded = false;
 let cancelledCommandId: string | undefined;
+let activeCommandId: string | undefined;
 
-function post(event: ConversionWorkerEvent) {
-  self.postMessage(event);
+function post(event: ConversionWorkerEvent, transfer: readonly Transferable[] = []) {
+  const scope = self as unknown as {
+    readonly postMessage: (message: ConversionWorkerEvent, transfer: Transferable[]) => void;
+  };
+  scope.postMessage(event, [...transfer]);
 }
 
 function getFfmpeg(): FFmpeg {
@@ -20,9 +26,11 @@ async function loadFfmpeg(commandId: string) {
 
   if (!loaded) {
     instance.on('progress', ({ progress }) => {
-      post({ type: 'ConversionProgressed', commandId, ratio: progress });
+      if (activeCommandId !== undefined) {
+        post({ type: 'ConversionProgressed', commandId: activeCommandId, ratio: progress });
+      }
     });
-    await instance.load();
+    await instance.load({ coreURL: ffmpegCoreUrl, wasmURL: ffmpegWasmUrl });
     loaded = true;
   }
 
@@ -34,6 +42,7 @@ async function convertAudio(
 ) {
   const instance = getFfmpeg();
   cancelledCommandId = undefined;
+  activeCommandId = command.commandId;
   post({ type: 'ConversionStarted', commandId: command.commandId });
 
   try {
@@ -42,7 +51,10 @@ async function convertAudio(
     }
 
     await instance.writeFile(command.inputName, command.inputData);
-    await instance.exec([...command.args]);
+    const exitCode = await instance.exec([...command.args]);
+    if (exitCode !== 0) {
+      throw new Error(`FFmpeg exited with code ${exitCode}.`);
+    }
 
     if (cancelledCommandId === command.commandId) {
       post({ type: 'ConversionCancelled', commandId: command.commandId });
@@ -52,20 +64,33 @@ async function convertAudio(
     const output = await instance.readFile(command.outputName);
     await cleanupFiles(instance, command.inputName, command.outputName);
 
-    post({
-      type: 'ConversionCompleted',
-      commandId: command.commandId,
-      outputName: command.outputName,
-      outputData: output instanceof Uint8Array ? output : new TextEncoder().encode(output),
-      mimeType: command.mimeType,
-    });
+    const outputData =
+      output instanceof Uint8Array ? output.slice() : new TextEncoder().encode(output);
+    post(
+      {
+        type: 'ConversionCompleted',
+        commandId: command.commandId,
+        outputName: command.outputName,
+        outputData,
+        mimeType: command.mimeType,
+      },
+      [outputData.buffer],
+    );
   } catch (error) {
     await cleanupFiles(instance, command.inputName, command.outputName);
-    post({
-      type: 'ConversionFailed',
-      commandId: command.commandId,
-      message: error instanceof Error ? error.message : 'Unknown conversion failure.',
-    });
+    if (cancelledCommandId === command.commandId) {
+      post({ type: 'ConversionCancelled', commandId: command.commandId });
+    } else {
+      post({
+        type: 'ConversionFailed',
+        commandId: command.commandId,
+        message: error instanceof Error ? error.message : 'Unknown conversion failure.',
+      });
+    }
+  } finally {
+    if (activeCommandId === command.commandId) {
+      activeCommandId = undefined;
+    }
   }
 }
 
@@ -85,15 +110,17 @@ self.addEventListener('message', (event: MessageEvent<ConversionWorkerCommand>) 
         await convertAudio(command);
         break;
       case 'CancelConversion':
+        if (activeCommandId !== command.commandId) break;
         cancelledCommandId = command.commandId;
         ffmpeg?.terminate();
+        ffmpeg = undefined;
         loaded = false;
-        post({ type: 'ConversionCancelled', commandId: command.commandId });
         break;
       case 'Dispose':
         ffmpeg?.terminate();
         ffmpeg = undefined;
         loaded = false;
+        activeCommandId = undefined;
         break;
     }
   })().catch((error: unknown) => {

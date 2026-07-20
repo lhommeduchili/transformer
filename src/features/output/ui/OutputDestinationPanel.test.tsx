@@ -30,4 +30,18 @@ describe('OutputDestinationPanel', () => {
 
     expect(screen.getAllByText(/browser downloads/i)).toHaveLength(1);
   });
+
+  it('disables folder changes while output is active', () => {
+    render(
+      <OutputDestinationPanel
+        destination={{ type: 'directory', name: 'DJ USB' }}
+        supportsFolderSelection={true}
+        canChooseDestination={false}
+        error={undefined}
+        onChooseDestination={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: /choose folder/i })).toBeDisabled();
+  });
 });

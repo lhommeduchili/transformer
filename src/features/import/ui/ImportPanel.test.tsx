@@ -34,6 +34,8 @@ describe('ImportPanel', () => {
         onRemoveAsset={() => undefined}
         onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
       />,
     );
 
@@ -52,6 +54,8 @@ describe('ImportPanel', () => {
         onRemoveAsset={() => undefined}
         onClearAssets={() => undefined}
         onFilesSelected={onFilesSelected}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
       />,
     );
 
@@ -69,6 +73,8 @@ describe('ImportPanel', () => {
         onRemoveAsset={() => undefined}
         onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
       />,
     );
 
@@ -88,6 +94,8 @@ describe('ImportPanel', () => {
         onRemoveAsset={onRemoveAsset}
         onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
       />,
     );
 
@@ -107,6 +115,8 @@ describe('ImportPanel', () => {
         onRemoveAsset={() => undefined}
         onClearAssets={onClearAssets}
         onFilesSelected={() => undefined}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
       />,
     );
 
@@ -124,6 +134,8 @@ describe('ImportPanel', () => {
         onRemoveAsset={() => undefined}
         onClearAssets={() => undefined}
         onFilesSelected={() => undefined}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
       />,
     );
 

@@ -2,6 +2,7 @@ import type { ClockPort } from '../../../shared/application/clock-port';
 import type { AudioConversionPort } from '../../conversion/application/audio-conversion-port';
 import type { AudioConversionCommand } from '../../conversion/application/conversion-command';
 import {
+  cancelUnstartedJob,
   completeJob,
   failJob,
   markCancelled,
@@ -23,7 +24,13 @@ import type {
   QueueExecutorPort,
 } from '../application/queue-executor-port';
 import type { ConversionQueue } from '../domain/conversion-queue';
-import { completeQueue, markQueueCancelled } from '../domain/conversion-queue';
+import {
+  completeQueue,
+  markQueueCancelled,
+  pauseQueue,
+  requestQueueCancel,
+  resumeQueue,
+} from '../domain/conversion-queue';
 
 export type ConversionOutputQueueExecutorConfig = {
   readonly preset: ConversionPreset;
@@ -52,6 +59,8 @@ function executeQueue(
   let cancelled = false;
   let paused = false;
   let activeIndex = 0;
+  let runPromise: Promise<void> | undefined;
+  let finished = false;
 
   function publish() {
     options.onSnapshot({ queue });
@@ -68,6 +77,8 @@ function executeQueue(
   }
 
   function finish() {
+    if (finished) return;
+
     const result = cancelled
       ? markQueueCancelled(queue, clock.now())
       : completeQueue(queue, clock.now());
@@ -78,8 +89,22 @@ function executeQueue(
     }
 
     queue = result.value;
+    finished = true;
     publish();
     options.onComplete({ queue });
+  }
+
+  function scheduleRun() {
+    if (runPromise !== undefined || finished) return;
+
+    runPromise = run()
+      .catch(options.onError)
+      .finally(() => {
+        runPromise = undefined;
+        if (!paused && !finished && (cancelled || activeIndex < queue.jobs.length)) {
+          scheduleRun();
+        }
+      });
   }
 
   async function run() {
@@ -103,7 +128,7 @@ function executeQueue(
       activeIndex += 1;
     }
 
-    finish();
+    if (!paused) finish();
   }
 
   async function runJob(job: ConversionJob, index: number) {
@@ -149,14 +174,14 @@ function executeQueue(
       if (!writing.ok) return markFailed(converting.value, index, writing.error.message);
       setJob(index, writing.value);
 
-      await config.outputWriter.writeFile({
+      const writeResult = await config.outputWriter.writeFile({
         name: converted.outputName,
         data: converted.data,
         mimeType: converted.mimeType,
       });
       if (isJobDismissed(index)) return;
 
-      const completed = completeJob(writing.value);
+      const completed = completeJob(writing.value, writeResult.outputName);
       if (!completed.ok) return markFailed(writing.value, index, completed.error.message);
       setJob(index, completed.value);
     } catch (error) {
@@ -209,19 +234,40 @@ function executeQueue(
     if (cancelledJob.ok) setJob(index, cancelledJob.value);
   }
 
-  void run().catch(options.onError);
+  scheduleRun();
 
   return {
     pause: () => {
+      if (paused || cancelled || finished) return;
+
+      const result = pauseQueue(queue);
+      if (!result.ok) return options.onError(new Error(result.error.message));
+
       paused = true;
+      queue = result.value;
+      publish();
     },
     resume: () => {
-      if (!paused) return;
+      if (!paused || cancelled || finished) return;
+
+      const result = resumeQueue(queue);
+      if (!result.ok) return options.onError(new Error(result.error.message));
+
       paused = false;
-      void run().catch(options.onError);
+      queue = result.value;
+      publish();
+      scheduleRun();
     },
     cancel: () => {
+      if (cancelled || finished) return;
+
+      const result = requestQueueCancel(queue);
+      if (!result.ok) return options.onError(new Error(result.error.message));
+
       cancelled = true;
+      paused = false;
+      queue = result.value;
+      publish();
       converter.cancel();
       const activeJob = queue.jobs[activeIndex];
       if (activeJob !== undefined && activeJob.status === 'converting') {
@@ -231,6 +277,16 @@ function executeQueue(
           if (cancelledJob.ok) setJob(activeIndex, cancelledJob.value);
         }
       }
+      queue = {
+        ...queue,
+        jobs: queue.jobs.map((job) => {
+          if (job.status !== 'pending' && job.status !== 'ready') return job;
+          const cancelledJob = cancelUnstartedJob(job);
+          return cancelledJob.ok ? cancelledJob.value : job;
+        }),
+      };
+      publish();
+      scheduleRun();
     },
     cancelJob: (jobId) => {
       const index = queue.jobs.findIndex((job) => job.id === jobId);

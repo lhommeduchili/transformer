@@ -3,10 +3,10 @@ import { create } from 'zustand';
 import type { ClockPort } from '../../../shared/application/clock-port';
 import type { IdGeneratorPort } from '../../../shared/application/id-generator-port';
 import type { ConversionJobId, QueueId } from '../../../shared/domain/ids';
-import { retryJob, skipJob } from '../../conversion/domain/conversion-job';
+import { skipJob } from '../../conversion/domain/conversion-job';
 import type { ConversionPreset } from '../../presets/domain/conversion-preset';
 import type { OutputFilenamePreview } from '../../presets/domain/output-filename-preview';
-import type { ConversionQueue } from '../domain/conversion-queue';
+import { prepareQueueRetry, type ConversionQueue } from '../domain/conversion-queue';
 import {
   cancelRunningQueue,
   pauseRunningQueue,
@@ -41,6 +41,7 @@ export type QueueStoreDependencies = {
 
 export function createQueueStore(dependencies: QueueStoreDependencies) {
   let controls: QueueExecutorControls | undefined;
+  let executionGeneration = 0;
 
   return create<QueueStoreState>((set, get) => ({
     queue: undefined,
@@ -56,6 +57,7 @@ export function createQueueStore(dependencies: QueueStoreDependencies) {
 
       controls?.cancel();
       controls = undefined;
+      executionGeneration += 1;
       set({ queue: planned.value, error: undefined });
     },
 
@@ -65,15 +67,29 @@ export function createQueueStore(dependencies: QueueStoreDependencies) {
 
       try {
         const runningQueue = startPlannedQueue(queue, dependencies.clock);
+        const generation = executionGeneration + 1;
+        executionGeneration = generation;
         set({ queue: runningQueue, error: undefined });
-        controls = dependencies.executor.execute(runningQueue, {
-          onSnapshot: (snapshot) => set({ queue: snapshot.queue }),
+        const executionControls = dependencies.executor.execute(runningQueue, {
+          onSnapshot: (snapshot) => {
+            if (executionGeneration === generation) set({ queue: snapshot.queue });
+          },
           onComplete: (snapshot) => {
+            if (executionGeneration !== generation) return;
             controls = undefined;
             set({ queue: snapshot.queue });
           },
-          onError: (error) => set({ error: error.message }),
+          onError: (error) => {
+            if (executionGeneration === generation) set({ error: error.message });
+          },
         });
+        const currentStatus = get().queue?.status;
+        controls =
+          executionGeneration === generation &&
+          currentStatus !== undefined &&
+          ['running', 'paused', 'cancelling'].includes(currentStatus)
+            ? executionControls
+            : undefined;
       } catch (error) {
         set({ error: error instanceof Error ? error.message : 'Unable to start queue.' });
       }
@@ -143,20 +159,17 @@ export function createQueueStore(dependencies: QueueStoreDependencies) {
       const queue = get().queue;
       if (queue === undefined || queue.status === 'running') return;
 
-      set({
-        queue: {
-          ...queue,
-          jobs: queue.jobs.map((job) => {
-            if (job.status !== 'failed') return job;
+      const retryable = prepareQueueRetry(queue);
+      if (!retryable.ok) {
+        set({ error: retryable.error.message });
+        return;
+      }
 
-            const retried = retryJob(job);
-            return retried.ok ? retried.value : job;
-          }),
-        },
-      });
+      set({ queue: retryable.value, error: undefined });
     },
 
     resetQueue: () => {
+      executionGeneration += 1;
       controls?.cancel();
       controls = undefined;
       set({ queue: undefined, error: undefined });

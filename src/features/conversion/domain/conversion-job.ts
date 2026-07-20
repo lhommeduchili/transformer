@@ -113,8 +113,12 @@ export function startWriting(job: ConversionJob): Result<ConversionJob, Conversi
   });
 }
 
-export function completeJob(job: ConversionJob): Result<ConversionJob, ConversionJobError> {
+export function completeJob(
+  job: ConversionJob,
+  outputName: string = job.outputName,
+): Result<ConversionJob, ConversionJobError> {
   return transition(job, 'completed', ['writing'], {
+    outputName,
     progress: { percent: completeProgress, phase: 'completed' },
   });
 }
@@ -129,6 +133,10 @@ export function requestCancel(job: ConversionJob): Result<ConversionJob, Convers
 
 export function markCancelled(job: ConversionJob): Result<ConversionJob, ConversionJobError> {
   return transition(job, 'cancelled', ['cancelling']);
+}
+
+export function cancelUnstartedJob(job: ConversionJob): Result<ConversionJob, ConversionJobError> {
+  return transition(job, 'cancelled', ['pending', 'ready']);
 }
 
 export function failJob(

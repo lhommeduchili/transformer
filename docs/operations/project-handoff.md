@@ -4,26 +4,29 @@ Use this document to resume work after a break without relying on chat history.
 
 ## Current State
 
-The project has completed Phases 0 through 11 of `docs/roadmap.md` and is at a production-readiness baseline for the current scope.
+The project has an implementation baseline across Phases 0 through 11 of `docs/roadmap.md`. It is in post-baseline hardening and is not release-ready until the automated and manual checks below are current for a specific build.
 
 Implemented capabilities:
 
 - Local-first browser audio preparation with no upload path.
 - Vite, React, TypeScript, Vitest, Playwright, ESLint, Prettier, dependency-cruiser, and CI gates.
 - Feature-oriented clean architecture with domain, application, infrastructure, and UI boundaries.
-- Local file import with lightweight file references.
-- Local header-based inspection for WAV, AIFF, FLAC, MP3, and M4A container/stream details where headers expose them.
+- Local file import and recursive folder-drop import where the browser entry API is available, using lightweight file references.
+- Worker-isolated, bounded local header inspection for WAV, AIFF, FLAC, MP3, and M4A container/stream details where headers expose them.
 - AIFF-first DJ preset for CDJ/Rekordbox-safe output.
 - FLAC to AIFF conversion through worker-isolated FFmpeg.wasm.
+- FFmpeg core JavaScript and WebAssembly are bundled locally rather than fetched from a runtime CDN.
 - AIFF output uses `pcm_s16be`, 44.1kHz, stereo.
 - Text metadata preservation for built-in presets.
 - Embedded artwork preservation for AIFF and MP3 when FFmpeg can map source artwork.
 - Filename structure preservation, including `Artist - Song.flac` to `Artist - Song.aiff`.
 - File System Access folder output in supported browsers.
 - Browser download fallback where folder output is unavailable.
-- Queue planning, start, pause, resume, cancel, retry, skip, reset, and progress states.
+- Queue planning, start, pause-after-current, resume, cancel, retry, skip, reset, and progress states.
 - Compatibility warnings for unsupported source containers/codecs, planned conversions, sample-rate changes, bitrate changes, stereo rendering, and incomplete inspection data.
 - Local JSON conversion reports.
+- Last-selected preset persistence through local browser storage.
+- Existing output filenames are conflict-checked before direct folder writes, and resolved output names are retained in reports.
 - Accessibility and UX hardening for control guidance, keyboard flow, progress status, and error recovery.
 - Documented brutal/minimal visual design baseline for the local audio workbench.
 - Performance guardrails and 1,000-item tests for large-batch planning/reporting.
@@ -133,10 +136,10 @@ Architecture docs:
 
 ## Current Automated Coverage
 
-At handoff time:
+At the 2026-07-19 hardening checkpoint:
 
-- 72 unit/component tests pass.
-- 6 Playwright E2E/accessibility tests pass.
+- 109 unit/component tests pass.
+- 8 Playwright E2E/accessibility tests pass.
 - Architecture boundary checks pass.
 - Production build passes.
 
@@ -175,27 +178,29 @@ Key decisions:
 
 ## Known Limitations
 
-- Real FFmpeg conversion is not executed in automated tests with fixture audio.
-- Inspection is header-based and bounded, but now includes metadata assessment, metadata audit panels, report summaries, binary ID3 parsing, lightweight MP4 metadata extraction, and dedicated parser infrastructure.
+- Playwright executes a generated, license-free silent WAV through real local FFmpeg conversion and verifies AIFF download plus JSON report export; broader format/metadata fixture coverage is still limited.
+- Inspection is header-based and bounded, but now includes metadata assessment, metadata audit panels, report summaries, binary ID3 parsing, structured FLAC Vorbis-comment parsing, bounded MP4 metadata-atom parsing, and dedicated parser infrastructure.
 - Browser folder output depends on File System Access API support.
 - Safari/Firefox use download fallback behavior.
 - Metadata/artwork compatibility must be manually verified with representative source files and Rekordbox/CDJ hardware.
 - The visual design baseline is documented, but visual regression coverage is still manual.
-- No persistent library database or settings persistence exists yet.
+- No persistent library database exists; settings persistence is currently limited to the last-selected preset.
 - Default conversion concurrency is intentionally `1`.
+- A dedicated folder-picker control and persistent chronological audit-event history are not implemented; per-job report diagnostics now expose statuses, attempts, metadata findings, and errors.
+- E2E coverage now includes real generated-WAV conversion and report export, but browser-level pause/resume, cancellation, retry, recursive folder import, and direct-folder conflict handling remain uncovered.
 
 ## Recommended Next Work
 
 Good next increments:
 
-- Complete true binary ID3v2 parsing and add MP4/M4A atom parsing.
+- Harden binary ID3v2 frame parsing and broaden MP4/M4A atom coverage for real-world container layouts.
 - Extend metadata audit workflow with filtering and grouped issue presentation.
-- Add metadata findings to exported reports and preservation verification.
+- Add metadata preservation verification; per-track metadata findings are now included in exported reports.
 - Add grouped compatibility warning presentation if warning volume becomes noisy with large batches.
 - Add settings for output extension preference if `.aif` is desired instead of `.aiff`.
 - Add optional report CSV export if useful for library audits.
 - Add visual QA and regression hardening around the documented design baseline.
-- Add real-audio integration tests only if stable fixture licensing and runtime constraints are acceptable.
+- Expand generated or license-safe real-audio integration coverage for cancellation, metadata/artwork preservation, and additional formats where runtime remains acceptable.
 - Run full manual release validation from `docs/operations/manual-release-test.md` on target browsers and Rekordbox/CDJ hardware.
 
 Avoid for now unless explicitly needed:

@@ -25,6 +25,26 @@ export function ReportPanel({ report, onExportJson }: ReportPanelProps) {
         <dt>skipped</dt>
         <dd>{report.summary.skipped}</dd>
       </dl>
+      <details className="report-job-details">
+        <summary>job details ({report.jobs.length})</summary>
+        <ul className="detail-list" aria-label="report job details">
+          {report.jobs.map((job) => (
+            <li key={job.jobId}>
+              <strong>{job.sourceName}</strong>
+              {' → '}
+              {job.outputName} · {job.status} · attempts: {job.attempts}
+              {job.metadata === undefined
+                ? ''
+                : ` · metadata: ${job.metadata.completeness}${
+                    job.metadata.missingFields.length === 0
+                      ? ''
+                      : ` · missing ${job.metadata.missingFields.join(', ')}`
+                  }`}
+              {job.errors.length === 0 ? '' : ` · errors: ${job.errors.join('; ')}`}
+            </li>
+          ))}
+        </ul>
+      </details>
       <p id="report-export-guidance" className="control-guidance">
         local json
       </p>

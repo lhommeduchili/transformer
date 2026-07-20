@@ -11,6 +11,7 @@ import { createFileSizeBytes } from '../../../shared/domain/numbers';
 import { performanceBudgets } from '../../../shared/domain/performance-budgets';
 import { createConversionJob } from '../../conversion/domain/conversion-job';
 import type { AudioAsset } from '../../import/domain/audio-asset';
+import { assessMetadata, createTrackInspection } from '../../inspection/domain/track-inspection';
 import { getDefaultPreset } from '../../presets/domain/built-in-presets';
 import { createQueue } from '../../queue/domain/conversion-queue';
 import { buildConversionReport } from '../application/build-conversion-report';
@@ -103,14 +104,30 @@ describe('buildConversionReport', () => {
       preset,
       destination: { type: 'directory', name: 'prepared aiff' },
       generatedAt: iso('2026-06-26T00:00:02.000Z'),
+      inspections: [
+        createTrackInspection({
+          assetId: asset.id,
+          metadata: { title: 'Track', artist: 'Artist' },
+          metadataAssessment: assessMetadata({ title: 'Track', artist: 'Artist' }, 'vorbis'),
+          warnings: [],
+        }),
+      ],
     });
 
     expect(report.schemaVersion).toBe(1);
     expect(report.preset.name).toBe('cdj / rekordbox safe aiff');
     expect(report.destination.name).toBe('prepared aiff');
     expect(report.summary).toMatchObject({ total: 1, completed: 1, failed: 0 });
-    expect(report.metadataSummary).toEqual({ complete: 0, partial: 0, missing: 0 });
-    expect(report.jobs[0]).toMatchObject({ sourceName: 'Track.flac', outputName: 'Track.aiff' });
+    expect(report.metadataSummary).toEqual({ complete: 0, partial: 1, missing: 0 });
+    expect(report.jobs[0]).toMatchObject({
+      sourceName: 'Track.flac',
+      outputName: 'Track.aiff',
+      metadata: {
+        completeness: 'partial',
+        sourceFormat: 'vorbis',
+        missingFields: ['album'],
+      },
+    });
   });
 
   it('builds reports for 1,000 jobs without repeated asset scans', () => {
@@ -136,5 +153,33 @@ describe('buildConversionReport', () => {
     expect(report.summary.completed).toBe(performanceBudgets.minimumUsableQueueSize);
     expect(report.jobs).toHaveLength(performanceBudgets.minimumUsableQueueSize);
     expect(report.jobs[999]?.sourceName).toBe('Artist 1000 - Track 1000.flac');
+  });
+
+  it('excludes inspections for assets outside the queue', () => {
+    const queuedAsset = fixtureAsset();
+    const unrelatedAsset = fixtureAssetAt(2);
+    const queueId = createQueueId('queue-1');
+    if (!queueId.ok) throw new Error('Invalid fixture.');
+    const report = buildConversionReport({
+      queue: createQueue({
+        id: queueId.value,
+        jobs: [fixtureJob(queuedAsset)],
+        createdAt: iso('2026-06-26T00:00:01.000Z'),
+      }),
+      assets: [queuedAsset, unrelatedAsset],
+      preset: getDefaultPreset(),
+      destination: { type: 'download_fallback', name: 'Browser downloads' },
+      generatedAt: iso('2026-06-26T00:00:02.000Z'),
+      inspections: [
+        createTrackInspection({
+          assetId: unrelatedAsset.id,
+          metadata: {},
+          metadataAssessment: assessMetadata({}, 'unknown'),
+          warnings: [],
+        }),
+      ],
+    });
+
+    expect(report.metadataSummary).toEqual({ complete: 0, partial: 0, missing: 0 });
   });
 });

@@ -10,6 +10,8 @@ type ImportPanelProps = {
   readonly onRemoveAsset: (assetId: AudioAsset['id']) => void;
   readonly onClearAssets: () => void;
   readonly onFilesSelected: (files: readonly File[]) => void;
+  readonly onFilesDropped: (dataTransfer: DataTransfer) => Promise<void>;
+  readonly supportsFolderDrop: boolean;
 };
 
 export function ImportPanel({
@@ -19,6 +21,8 @@ export function ImportPanel({
   onRemoveAsset,
   onClearAssets,
   onFilesSelected,
+  onFilesDropped,
+  supportsFolderDrop,
 }: ImportPanelProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const dragDepth = useRef(0);
@@ -44,11 +48,11 @@ export function ImportPanel({
     }
   }
 
-  function handleDrop(event: DragEvent<HTMLDivElement>) {
+  async function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     dragDepth.current = 0;
     setIsDragActive(false);
-    onFilesSelected(Array.from(event.dataTransfer.files));
+    await onFilesDropped(event.dataTransfer);
   }
 
   function preventDefault(event: DragEvent<HTMLDivElement>) {
@@ -62,7 +66,9 @@ export function ImportPanel({
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDragOver={preventDefault}
-        onDrop={handleDrop}
+        onDrop={(event) => {
+          void handleDrop(event);
+        }}
       >
         {assets.length > 0 || rejected.length > 0 ? (
           <div className="imported-track-region">
@@ -120,7 +126,10 @@ export function ImportPanel({
         <div className="import-actions">
           <div>
             <h2 id="import-title">drop audio</h2>
-            <p className="format-line">flac / wav / aiff / mp3 / m4a / aac / ogg</p>
+            <p className="format-line">
+              {supportsFolderDrop ? 'files or folders' : 'files'} · flac / wav / aiff / mp3 / m4a /
+              aac / ogg
+            </p>
           </div>
           <button
             className="primary-action"

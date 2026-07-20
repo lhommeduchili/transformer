@@ -6,7 +6,7 @@ Use this file when restarting Antigravity or another agent. It captures the curr
 
 - Workspace: `/Users/lhommeduchili/dev/transformer`.
 - Git worktree was clean when this handoff was written.
-- Current phase: Phase 11 production-readiness baseline, with post-baseline increments underway.
+- Current phase: post-Phase 11 hardening. The baseline exists, but release validation and known scope gaps remain.
 - Main detailed handoff: `docs/operations/project-handoff.md`.
 - Visual design source of truth: `docs/ux/visual-design.md`.
 
@@ -34,6 +34,7 @@ Use this file when restarting Antigravity or another agent. It captures the curr
 - Added `src/features/inspection/infrastructure/browser-local-audio-inspection-adapter.ts`.
 - Wired `src/app/App.tsx` to use bounded local header inspection instead of mock inspection.
 - Inspection reads only a bounded header slice, not whole audio files.
+- Header parsing runs in a dedicated typed inspection worker, with browser reads dispatched sequentially to bound memory pressure.
 - Header support currently covers:
   - WAV: container, PCM codec, sample rate, channels, duration.
   - AIFF: container, codec where inferable, sample rate, channels, duration when COMM is available.
@@ -70,7 +71,7 @@ npm run build
 npm run test:e2e
 ```
 
-Current coverage count at handoff:
+Historical coverage count at this handoff (see `project-handoff.md` for the current checkpoint):
 
 - 72 unit/component tests pass.
 - 6 Playwright E2E/accessibility tests pass.
@@ -90,14 +91,14 @@ Current coverage count at handoff:
 
 ## High-Value Next Increment
 
-Recommended next task: deeper local metadata parsing behind the existing inspection boundary.
+Recommended next task: deeper local metadata parsing behind the existing worker-isolated inspection boundary.
 
 Suggested order:
 
-1. Add ID3v2 metadata parsing for MP3 headers in inspection infrastructure.
-2. Add FLAC Vorbis comment parsing after STREAMINFO.
+1. Harden the existing ID3v2 frame parser across supported versions and encodings.
+2. Replace lightweight FLAC comment scanning with structured Vorbis-comment parsing.
 3. Add MP4/M4A atom parsing for common tags.
-4. Add UI display only after parsing policies and tests are stable.
+4. Add metadata filtering and per-track report findings after parser policies and tests are stable.
 
 Keep this work in infrastructure/application/domain boundaries:
 
@@ -161,7 +162,7 @@ npm run dev
 
 ## Manual Validation Still Needed
 
-- Real audio conversion is not automated with fixture audio.
+- A generated silent WAV is now converted through real FFmpeg in Playwright; representative FLAC metadata/artwork and cancellation behavior still need broader automated or manual coverage.
 - Manual FLAC to AIFF conversion should still be tested before release.
 - Rekordbox/CDJ compatibility should be manually checked with representative files.
 - Browser behavior should be checked in Chromium plus fallback-output browsers such as Safari/Firefox.

@@ -1,4 +1,3 @@
-import { nextAvailableFilename } from '../application/filename-conflict-policy';
 import type {
   OutputDestinationSelection,
   OutputFile,
@@ -33,7 +32,7 @@ export function supportsFileSystemAccess(): boolean {
 
 export function createFileSystemAccessOutputWriter(): OutputWriterPort {
   let directoryHandle: FileSystemDirectoryHandle | undefined;
-  const writtenNames = new Set<string>();
+  const writtenNamesByDirectory = new WeakMap<FileSystemDirectoryHandle, Set<string>>();
 
   return {
     get destination() {
@@ -49,28 +48,74 @@ export function createFileSystemAccessOutputWriter(): OutputWriterPort {
       }
 
       directoryHandle = await picker();
-      writtenNames.clear();
+      writtenNamesByDirectory.set(directoryHandle, new Set());
 
       return { destination: { type: 'directory', name: directoryHandle.name } };
     },
     writeFile: async (file: OutputFile): Promise<OutputWriteResult> => {
-      if (directoryHandle === undefined) {
+      const targetDirectory = directoryHandle;
+      if (targetDirectory === undefined) {
         throw new Error('Choose an output folder before writing files.');
       }
 
-      const outputName = nextAvailableFilename(file.name, (candidate) =>
-        writtenNames.has(candidate),
+      const writtenNames = writtenNamesByDirectory.get(targetDirectory) ?? new Set<string>();
+      writtenNamesByDirectory.set(targetDirectory, writtenNames);
+      const outputName = await nextAvailableDirectoryFilename(
+        targetDirectory,
+        file.name,
+        writtenNames,
       );
-      const fileHandle = await directoryHandle.getFileHandle(outputName, { create: true });
+      const fileHandle = await targetDirectory.getFileHandle(outputName, { create: true });
       const writable = await fileHandle.createWritable();
 
       await writable.write(new Blob([arrayBufferForBlob(file.data)], { type: file.mimeType }));
       await writable.close();
       writtenNames.add(outputName);
 
-      return { outputName, destination: { type: 'directory', name: directoryHandle.name } };
+      return { outputName, destination: { type: 'directory', name: targetDirectory.name } };
     },
   };
+}
+
+async function nextAvailableDirectoryFilename(
+  directoryHandle: FileSystemDirectoryHandle,
+  requestedName: string,
+  writtenNames: ReadonlySet<string>,
+): Promise<string> {
+  const lastDot = requestedName.lastIndexOf('.');
+  const baseName = lastDot > 0 ? requestedName.slice(0, lastDot) : requestedName;
+  const extension = lastDot > 0 ? requestedName.slice(lastDot) : '';
+  let candidate = requestedName;
+  let index = 2;
+
+  while (writtenNames.has(candidate) || (await directoryContains(directoryHandle, candidate))) {
+    candidate = `${baseName}-${index}${extension}`;
+    index += 1;
+  }
+
+  return candidate;
+}
+
+async function directoryContains(
+  directoryHandle: FileSystemDirectoryHandle,
+  name: string,
+): Promise<boolean> {
+  try {
+    await directoryHandle.getFileHandle(name);
+    return true;
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return (
+    typeof error === 'object' && error !== null && 'name' in error && error.name === 'NotFoundError'
+  );
 }
 
 function arrayBufferForBlob(data: Uint8Array): ArrayBuffer {

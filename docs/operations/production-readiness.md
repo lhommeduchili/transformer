@@ -22,11 +22,12 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 
 - Audio files are processed locally in the browser.
 - No upload endpoints, fetch-based audio transfer, cloud storage, or remote metadata enrichment are present.
-- Reports contain filenames, output names, queue statuses, preset identifiers, timestamps, and error messages only.
+- Reports contain filenames, output names, queue statuses, preset identifiers, timestamps, error messages, and bounded metadata-assessment findings (completeness, source format, missing essential fields, and artwork presence state).
 - Reports must never contain audio bytes or embedded artwork bytes.
 - File System Access permission is requested only after an explicit user action.
 - File handles are not persisted silently.
 - FFmpeg runs in a worker, not the UI thread.
+- FFmpeg core JavaScript and WebAssembly are bundled locally; conversion does not fetch executable code from a CDN at runtime.
 
 ## Compatibility Checklist
 
@@ -69,7 +70,7 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 
 ## Known Limitations
 
-- Automated tests do not perform real FFmpeg conversion with fixture audio.
+- Automated Playwright coverage performs one generated silent-WAV-to-AIFF conversion; broader real-format metadata/artwork coverage remains limited.
 - Real metadata/artwork compatibility must be manually verified with Rekordbox and target CDJ hardware.
 - Browser folder writing depends on File System Access API support; unsupported browsers use downloads.
 - Visual regression coverage is currently manual.

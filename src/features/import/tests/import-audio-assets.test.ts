@@ -71,4 +71,29 @@ describe('importAudioAssets', () => {
     expect(result.rejected).toHaveLength(0);
     expect(result.assets[999]?.sourceName).toBe('Artist 1000 - Track 1000.flac');
   });
+
+  it('preserves each accepted reference when source names are identical', () => {
+    let nextId = 0;
+    const first = file('Track.flac');
+    const second = { ...file('Track.flac'), original: { source: 'second' } };
+    const now = createDateTimeIso('2026-06-24T00:00:00.000Z');
+    if (!now.ok) throw new Error('Invalid fixture.');
+
+    const result = importAudioAssets([first, second], {
+      idGenerator: {
+        nextId: () => {
+          nextId += 1;
+          const id = createAudioAssetId(`asset-${nextId}`);
+          if (!id.ok) throw new Error('Invalid fixture.');
+          return id.value;
+        },
+      },
+      clock: { now: () => now.value },
+    });
+
+    expect(result.accepted).toHaveLength(2);
+    expect(result.accepted[0]?.file).toBe(first);
+    expect(result.accepted[1]?.file).toBe(second);
+    expect(result.accepted[0]?.asset.id).not.toBe(result.accepted[1]?.asset.id);
+  });
 });

@@ -195,6 +195,36 @@ summary span:last-child,
   color: var(--color-phosphor);
 }
 
+.capability-notice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  border-bottom: 1px solid var(--color-line);
+  padding: 0.25rem 0 0.65rem;
+  font-family: var(--font-terminal);
+  font-size: 0.68rem;
+  text-transform: lowercase;
+}
+
+.capability-notice h2,
+.capability-notice p,
+.capability-notice ul {
+  margin: 0;
+}
+
+.capability-notice p {
+  color: var(--color-phosphor);
+}
+
+.capability-notice ul {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  padding: 0;
+  list-style: none;
+}
+
 .workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);

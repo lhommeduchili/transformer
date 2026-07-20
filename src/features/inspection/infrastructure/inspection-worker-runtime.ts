@@ -1,40 +1,39 @@
 import type {
-  ConversionWorkerCommand,
-  ConversionWorkerEvent,
-} from '../workers/conversion-worker-protocol';
+  InspectionWorkerCommand,
+  InspectionWorkerEvent,
+} from '../workers/inspection-worker-protocol';
 
-export type ConversionWorkerRuntime = {
-  readonly post: (command: ConversionWorkerCommand, transfer?: readonly Transferable[]) => void;
-  readonly subscribe: (listener: (event: ConversionWorkerEvent) => void) => () => void;
+export type InspectionWorkerRuntime = {
+  readonly post: (command: InspectionWorkerCommand, transfer?: readonly Transferable[]) => void;
+  readonly subscribe: (listener: (event: InspectionWorkerEvent) => void) => () => void;
   readonly terminate: () => void;
 };
 
-export function createConversionWorkerRuntime(): ConversionWorkerRuntime {
-  const listeners = new Set<(event: ConversionWorkerEvent) => void>();
-  let worker: Worker | undefined;
+export function createInspectionWorkerRuntime(): InspectionWorkerRuntime {
+  const listeners = new Set<(event: InspectionWorkerEvent) => void>();
 
+  let worker: Worker | undefined;
   const publishFailure = (message: string) => {
     for (const listener of listeners) listener({ type: 'WorkerFailed', message });
     listeners.clear();
   };
-
   function getWorker(): Worker {
     if (worker !== undefined) return worker;
-    const created = new Worker(new URL('../workers/conversion.worker.ts', import.meta.url), {
+    const created = new Worker(new URL('../workers/inspection.worker.ts', import.meta.url), {
       type: 'module',
     });
-    created.addEventListener('message', (event: MessageEvent<ConversionWorkerEvent>) => {
+    created.addEventListener('message', (event: MessageEvent<InspectionWorkerEvent>) => {
       for (const listener of listeners) listener(event.data);
     });
     created.addEventListener('error', (event) => {
       created.terminate();
       if (worker === created) worker = undefined;
-      publishFailure(event.message || 'Conversion worker crashed.');
+      publishFailure(event.message || 'Inspection worker crashed.');
     });
     created.addEventListener('messageerror', () => {
       created.terminate();
       if (worker === created) worker = undefined;
-      publishFailure('Conversion worker returned an unreadable message.');
+      publishFailure('Inspection worker returned an unreadable message.');
     });
     worker = created;
     return created;
@@ -45,7 +44,6 @@ export function createConversionWorkerRuntime(): ConversionWorkerRuntime {
       getWorker().postMessage(command, transfer === undefined ? [] : [...transfer]),
     subscribe: (listener) => {
       listeners.add(listener);
-
       return () => listeners.delete(listener);
     },
     terminate: () => {

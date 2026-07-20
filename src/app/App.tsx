@@ -6,6 +6,7 @@ import {
 } from '../features/import/application/import-audio-assets';
 import type { AudioAsset } from '../features/import/domain/audio-asset';
 import { createBrowserFileImportAdapter } from '../features/import/infrastructure/browser-file-import-adapter';
+import { filesFromDataTransfer } from '../features/import/infrastructure/browser-folder-import-adapter';
 import { ImportPanel } from '../features/import/ui/ImportPanel';
 import { inspectAudioAssets } from '../features/inspection/application/inspect-audio-assets';
 import type { TrackInspection } from '../features/inspection/domain/track-inspection';
@@ -45,6 +46,9 @@ import {
   createCryptoQueueIdGenerator,
 } from '../shared/infrastructure/browser/crypto-id-generator';
 import { createSystemClock } from '../shared/infrastructure/browser/system-clock';
+import { createBrowserCapabilitiesAdapter } from '../shared/infrastructure/browser/browser-capabilities-adapter';
+import { BrowserCapabilityNotice } from '../shared/ui/BrowserCapabilityNotice';
+import { createBrowserPreferencesAdapter } from '../features/settings/infrastructure/browser-preferences-adapter';
 
 const fileImportAdapter = createBrowserFileImportAdapter();
 const idGenerator = createCryptoAudioAssetIdGenerator();
@@ -54,6 +58,8 @@ const signatureText = 'made with ♥ by alφ';
 const fileRegistry = createImportedFileRegistry();
 const inspectionAdapter = createBrowserLocalAudioInspectionAdapter(fileRegistry);
 const outputWriter = createBestAvailableOutputWriter();
+const browserCapabilities = createBrowserCapabilitiesAdapter().detect();
+const preferences = createBrowserPreferencesAdapter();
 const mockQueueExecutor = createMockQueueExecutor(clock);
 let activeQueueExecutor: QueueExecutorPort = mockQueueExecutor;
 let conversionAdapter: AudioConversionPort | undefined;
@@ -74,14 +80,20 @@ function getConversionAdapter(): AudioConversionPort {
 
 export function App() {
   const setupControlsRef = useRef<HTMLDivElement>(null);
+  const importChainRef = useRef(Promise.resolve());
+  const importGenerationRef = useRef(0);
   const [setupControlsHeight, setSetupControlsHeight] = useState<number | undefined>(undefined);
   const [assets, setAssets] = useState<readonly AudioAsset[]>([]);
   const [rejected, setRejected] = useState<readonly ImportRejection[]>([]);
   const [inspections, setInspections] = useState<readonly TrackInspection[]>([]);
-  const [selectedPreset, setSelectedPreset] = useState<ConversionPreset>(() => getInitialPreset());
+  const [selectedPreset, setSelectedPreset] = useState<ConversionPreset>(() => {
+    const preferredPresetId = preferences.load().presetId;
+    return presets.find((preset) => preset.id === preferredPresetId) ?? getInitialPreset();
+  });
   const [outputDestination, setOutputDestination] = useState<OutputDestination>(
     outputWriter.destination,
   );
+  const [queueDestination, setQueueDestination] = useState<OutputDestination | undefined>();
   const [outputError, setOutputError] = useState<string | undefined>(undefined);
   const queue = useQueueStore((state) => state.queue);
   const queueError = useQueueStore((state) => state.error);
@@ -103,9 +115,10 @@ export function App() {
       : buildConversionReport({
           queue,
           assets,
-          preset: selectedPreset,
-          destination: outputDestination,
+          preset: presetForQueue(queue) ?? selectedPreset,
+          destination: queueDestination ?? outputDestination,
           generatedAt: queue.completedAt ?? clock.now(),
+          inspections,
         });
 
   useEffect(() => {
@@ -121,24 +134,31 @@ export function App() {
     return () => observer.disconnect();
   }, []);
 
-  async function handleFilesSelected(files: readonly File[]) {
+  function handleFilesSelected(files: readonly File[]): Promise<void> {
+    const queuedImport = importChainRef.current.then(() => importSelectedFiles(files));
+    importChainRef.current = queuedImport.catch(() => undefined);
+    return queuedImport;
+  }
+
+  async function importSelectedFiles(files: readonly File[]) {
+    const generation = importGenerationRef.current;
     const references = fileImportAdapter.fromFileList(files);
     const imported = importAudioAssets(references, { idGenerator, clock });
-    const nextAssets = [...assets, ...imported.assets];
 
-    for (const asset of imported.assets) {
-      const reference = references.find(
-        (candidate) => candidate.name === asset.sourceName && candidate.original instanceof File,
-      );
-
-      if (reference?.original instanceof File) {
-        fileRegistry.register(asset.id, reference.original);
+    for (const { asset, file } of imported.accepted) {
+      if (file.original instanceof File) {
+        fileRegistry.register(asset.id, file.original);
       }
     }
 
-    setAssets(nextAssets);
-    setRejected([...rejected, ...imported.rejected]);
-    setInspections(await inspectAudioAssets(nextAssets, inspectionAdapter));
+    const importedInspections = await inspectAudioAssets(imported.assets, inspectionAdapter);
+    if (generation !== importGenerationRef.current) {
+      for (const asset of imported.assets) fileRegistry.unregister(asset.id);
+      return;
+    }
+    setAssets((current) => [...current, ...imported.assets]);
+    setRejected((current) => [...current, ...imported.rejected]);
+    setInspections((current) => [...current, ...importedInspections]);
   }
 
   function handleRemoveAsset(assetId: AudioAsset['id']) {
@@ -150,18 +170,21 @@ export function App() {
 
     if (queue !== undefined) {
       resetQueue();
+      setQueueDestination(undefined);
     }
   }
 
   function handleClearAssets() {
     if (!canRemoveImportedAssets) return;
 
+    importGenerationRef.current += 1;
     setAssets([]);
     setInspections([]);
     fileRegistry.clear();
 
     if (queue !== undefined) {
       resetQueue();
+      setQueueDestination(undefined);
     }
   }
 
@@ -188,6 +211,7 @@ export function App() {
       fileRegistry,
       outputWriter,
     });
+    setQueueDestination(outputDestination);
     return true;
   }
 
@@ -198,9 +222,10 @@ export function App() {
       buildConversionReport({
         queue,
         assets,
-        preset: selectedPreset,
-        destination: outputDestination,
+        preset: presetForQueue(queue) ?? selectedPreset,
+        destination: queueDestination ?? outputDestination,
         generatedAt: clock.now(),
+        inspections,
       }),
     );
     const url = URL.createObjectURL(new Blob([exported.contents], { type: exported.mimeType }));
@@ -218,6 +243,8 @@ export function App() {
         <h1 id="app-title">transformer</h1>
         <HeaderSignature />
       </header>
+
+      <BrowserCapabilityNotice capabilities={browserCapabilities} />
 
       <section
         className="workbench"
@@ -238,6 +265,10 @@ export function App() {
             onFilesSelected={(files) => {
               void handleFilesSelected(files);
             }}
+            onFilesDropped={async (dataTransfer) => {
+              await handleFilesSelected(await filesFromDataTransfer(dataTransfer));
+            }}
+            supportsFolderDrop={browserCapabilities.folderDrop}
           />
           <div className="queue-panel-slot">
             <QueuePanel
@@ -256,7 +287,10 @@ export function App() {
               onResumeQueue={resumeQueue}
               onCancelQueue={cancelQueue}
               onRetryFailed={retryFailedJobs}
-              onResetQueue={resetQueue}
+              onResetQueue={() => {
+                resetQueue();
+                setQueueDestination(undefined);
+              }}
               onSkipJob={skipQueueJob}
             />
           </div>
@@ -267,11 +301,15 @@ export function App() {
             <PresetSelector
               presets={presets}
               selectedPreset={selectedPreset}
-              onPresetSelected={setSelectedPreset}
+              onPresetSelected={(preset) => {
+                setSelectedPreset(preset);
+                preferences.save({ presetId: preset.id });
+              }}
             />
             <OutputDestinationPanel
               destination={outputDestination}
               supportsFolderSelection={supportsFileSystemAccess()}
+              canChooseDestination={canRemoveImportedAssets}
               error={outputError}
               onChooseDestination={() => {
                 void handleChooseOutputDestination();
@@ -299,6 +337,11 @@ export function App() {
       ) : null}
     </main>
   );
+}
+
+function presetForQueue(queue: NonNullable<ReturnType<typeof useQueueStore.getState>['queue']>) {
+  const presetId = queue.jobs[0]?.presetId;
+  return presets.find((preset) => preset.id === presetId);
 }
 
 function HeaderSignature() {

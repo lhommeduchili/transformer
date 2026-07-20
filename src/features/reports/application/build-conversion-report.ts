@@ -16,8 +16,17 @@ export type BuildConversionReportInput = {
 };
 
 export function buildConversionReport(input: BuildConversionReportInput): ConversionReport {
+  const queueAssetIds = new Set(input.queue.jobs.map((job) => job.assetId));
+  const queueInspections = (input.inspections ?? []).filter((inspection) =>
+    queueAssetIds.has(inspection.assetId),
+  );
   const sourceNamesByAssetId = new Map(
-    input.assets.map((asset) => [asset.id, asset.sourceName] as const),
+    input.assets
+      .filter((asset) => queueAssetIds.has(asset.id))
+      .map((asset) => [asset.id, asset.sourceName] as const),
+  );
+  const inspectionsByAssetId = new Map(
+    queueInspections.map((inspection) => [inspection.assetId, inspection] as const),
   );
 
   return {
@@ -36,17 +45,31 @@ export function buildConversionReport(input: BuildConversionReportInput): Conver
     },
     destination: input.destination,
     summary: summarizeJobs(input.queue),
-    metadataSummary: summarizeMetadata(input.inspections ?? []),
-    jobs: input.queue.jobs.map((job) => ({
-      jobId: job.id,
-      assetId: job.assetId,
-      sourceName: sourceNamesByAssetId.get(job.assetId) ?? 'Unknown source file',
-      outputName: job.outputName,
-      status: job.status,
-      attempts: job.attempts,
-      progressPercent: job.progress.percent,
-      errors: job.errors.map((error) => error.message),
-    })),
+    metadataSummary: summarizeMetadata(queueInspections),
+    jobs: input.queue.jobs.map((job) => {
+      const inspection = inspectionsByAssetId.get(job.assetId);
+
+      return {
+        jobId: job.id,
+        assetId: job.assetId,
+        sourceName: sourceNamesByAssetId.get(job.assetId) ?? 'Unknown source file',
+        outputName: job.outputName,
+        status: job.status,
+        attempts: job.attempts,
+        progressPercent: job.progress.percent,
+        errors: job.errors.map((error) => error.message),
+        ...(inspection === undefined
+          ? {}
+          : {
+              metadata: {
+                completeness: inspection.metadataAssessment.completeness,
+                sourceFormat: inspection.metadataAssessment.sourceFormat,
+                missingFields: inspection.metadataAssessment.missingFields,
+                artwork: inspection.metadataAssessment.artwork,
+              },
+            }),
+      };
+    }),
   };
 }
 

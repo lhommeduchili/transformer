@@ -135,11 +135,11 @@ Deliverables:
 
 ## Post-Phase 11: Recommended Next Increments
 
-The Phase 0-11 baseline is complete for the current local-first conversion workflow. Next work should be prioritized from `docs/operations/project-handoff.md`.
+The Phase 0-11 implementation baseline exists for the current local-first conversion workflow. Production release still depends on the automated and manual validation in `docs/operations/production-readiness.md`, and known scope gaps remain tracked in `docs/operations/project-handoff.md`.
 
 Candidates:
 
-- Deeper local metadata parsing for ID3, Vorbis comments, FLAC tags, and MP4 atoms.
+- Harden local metadata parsing for ID3 versions/flags and broader nested MP4 atom layouts.
 - Grouped compatibility warning presentation for large batches if needed.
 - Visual QA and regression hardening around the documented design baseline.
 - Optional report CSV export.

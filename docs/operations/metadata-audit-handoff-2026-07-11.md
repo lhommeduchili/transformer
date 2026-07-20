@@ -18,10 +18,10 @@
 
 ## Recommended Next Work
 
-1. Replace heuristic ID3 parsing with true frame parsing.
-2. Add MP4/M4A atom parsing.
+1. Harden the current ID3 frame parser across supported versions, flags, and encodings.
+2. Broaden the current bounded MP4/M4A atom parser for nested real-world container layouts.
 3. Add metadata audit filters.
-4. Include per-track metadata findings in reports.
+4. Expand per-track metadata findings in reports if additional audit fields are approved by the privacy schema.
 5. Add metadata preservation verification tests.
 
 ## Verification Completed

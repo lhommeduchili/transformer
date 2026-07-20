@@ -26,7 +26,12 @@ export function createFfmpegAudioConversionAdapter(
             return;
           }
 
-          handleWorkerEvent(event, command, onProgress, resolve, reject, unsubscribe);
+          handleWorkerEvent(event, command, onProgress, resolve, reject, () => {
+            if (activeCommandId === commandId) {
+              activeCommandId = undefined;
+            }
+            unsubscribe();
+          });
         });
 
         runtime.post(
@@ -61,7 +66,7 @@ function handleWorkerEvent(
   onProgress: (event: AudioConversionProgressEvent) => void,
   resolve: (result: AudioConversionResult) => void,
   reject: (error: Error) => void,
-  unsubscribe: () => void,
+  finish: () => void,
 ) {
   switch (event.type) {
     case 'ConversionProgressed': {
@@ -74,7 +79,7 @@ function handleWorkerEvent(
       break;
     }
     case 'ConversionCompleted':
-      unsubscribe();
+      finish();
       resolve({
         assetId: command.assetId,
         outputName: event.outputName,
@@ -83,15 +88,15 @@ function handleWorkerEvent(
       });
       break;
     case 'ConversionCancelled':
-      unsubscribe();
+      finish();
       reject(new Error('Conversion cancelled.'));
       break;
     case 'ConversionFailed':
-      unsubscribe();
+      finish();
       reject(new Error(event.message));
       break;
     case 'WorkerFailed':
-      unsubscribe();
+      finish();
       reject(new Error(event.message));
       break;
     case 'WorkerReady':

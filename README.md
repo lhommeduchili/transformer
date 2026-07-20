@@ -6,7 +6,7 @@ The product principle is local-first processing: audio files must never be uploa
 
 ## Current Phase
 
-Phase 11: production readiness.
+Post-Phase 11 hardening. The baseline workflow is implemented; release validation and documented gap closure remain active.
 
 The project now has a Vite, React, TypeScript, test, lint, build, E2E, and architecture-check scaffold plus pure domain models, local file import, browser capability detection, bounded local header inspection, AIFF-first DJ presets, compatibility validation, filename sanitization, output filename previews, queue planning, queue controls, worker-isolated FFmpeg.wasm conversion infrastructure, output folder selection, download fallback writing, real conversion-to-output executor wiring, preserved text metadata/artwork for DJ-safe AIFF/MP3 outputs, local JSON conversion reports, UX hardening for recovery, control guidance, keyboard flow, and progress announcements, a documented brutal/minimal local workbench visual baseline, performance guardrails for large batch planning/reporting and active-file-only conversion reads, and production readiness checklists for release validation.
 

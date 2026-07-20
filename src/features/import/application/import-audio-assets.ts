@@ -13,6 +13,10 @@ export type ImportRejection = {
 
 export type ImportAudioAssetsResult = {
   readonly assets: readonly AudioAsset[];
+  readonly accepted: readonly {
+    readonly asset: AudioAsset;
+    readonly file: InputFileReference;
+  }[];
   readonly rejected: readonly ImportRejection[];
 };
 
@@ -26,6 +30,7 @@ export function importAudioAssets(
   dependencies: ImportAudioAssetsDependencies,
 ): ImportAudioAssetsResult {
   const assets: AudioAsset[] = [];
+  const accepted: { asset: AudioAsset; file: InputFileReference }[] = [];
   const rejected: ImportRejection[] = [];
 
   for (const file of files) {
@@ -50,10 +55,11 @@ export function importAudioAssets(
 
     if (asset.ok) {
       assets.push(asset.value);
+      accepted.push({ asset: asset.value, file });
     } else {
       rejected.push({ name: file.name, reason: 'invalid_asset', extension });
     }
   }
 
-  return { assets, rejected };
+  return { assets, accepted, rejected };
 }

@@ -2,7 +2,7 @@ import type { DateTimeIso } from '../../../shared/domain/date-time';
 import type { QueueId } from '../../../shared/domain/ids';
 import { err, ok, type Result } from '../../../shared/domain/result';
 import type { ConversionError } from '../../conversion/domain/conversion-error';
-import type { ConversionJob } from '../../conversion/domain/conversion-job';
+import { retryJob, type ConversionJob } from '../../conversion/domain/conversion-job';
 import type { QueueStatus } from './queue-status';
 
 export type ConversionQueue = {
@@ -24,6 +24,10 @@ export type ConversionQueueError =
     }
   | {
       readonly type: 'empty_queue';
+      readonly message: string;
+    }
+  | {
+      readonly type: 'no_failed_jobs';
       readonly message: string;
     };
 
@@ -81,7 +85,38 @@ export function resumeQueue(queue: ConversionQueue): Result<ConversionQueue, Con
 export function requestQueueCancel(
   queue: ConversionQueue,
 ): Result<ConversionQueue, ConversionQueueError> {
-  return transitionQueue(queue, 'cancelling', ['running']);
+  return transitionQueue(queue, 'cancelling', ['running', 'paused']);
+}
+
+export function prepareQueueRetry(
+  queue: ConversionQueue,
+): Result<ConversionQueue, ConversionQueueError> {
+  if (!['completed_with_errors', 'failed'].includes(queue.status)) {
+    return err(invalidQueueTransition(queue.status, 'idle'));
+  }
+
+  let retriedCount = 0;
+  const jobs = queue.jobs.map((job) => {
+    if (job.status !== 'failed') return job;
+
+    const retried = retryJob(job);
+    if (!retried.ok) return job;
+
+    retriedCount += 1;
+    return retried.value;
+  });
+
+  if (retriedCount === 0) {
+    return err({ type: 'no_failed_jobs', message: 'Queue has no failed jobs to retry.' });
+  }
+
+  return ok({
+    id: queue.id,
+    jobs,
+    status: 'idle',
+    createdAt: queue.createdAt,
+    errors: [],
+  });
 }
 
 export function markQueueCancelled(

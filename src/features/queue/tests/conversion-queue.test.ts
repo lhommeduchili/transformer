@@ -16,6 +16,8 @@ import {
   completeQueue,
   createQueue,
   pauseQueue,
+  prepareQueueRetry,
+  requestQueueCancel,
   resumeQueue,
   startQueue,
 } from '../domain/conversion-queue';
@@ -109,5 +111,51 @@ describe('conversion queue state machine', () => {
     expect(completed.ok).toBe(true);
     if (!completed.ok) throw new Error('Expected completed.');
     expect(completed.value.status).toBe('completed_with_errors');
+  });
+
+  it('prepares failed jobs for another queue run', () => {
+    const inspecting = startInspection(job());
+    if (!inspecting.ok) throw new Error('Expected inspecting.');
+    const failedJob = failJob(inspecting.value, {
+      type: 'inspection_failed',
+      message: 'Could not inspect file.',
+      recoverable: true,
+    });
+    if (!failedJob.ok) throw new Error('Expected failed job.');
+
+    const id = createQueueId('queue-1');
+    if (!id.ok) throw new Error('Invalid fixture.');
+    const running = startQueue(
+      createQueue({
+        id: id.value,
+        jobs: [failedJob.value],
+        createdAt: iso('2026-06-24T00:00:00.000Z'),
+      }),
+      iso('2026-06-24T00:00:01.000Z'),
+    );
+    if (!running.ok) throw new Error('Expected running.');
+    const completed = completeQueue(running.value, iso('2026-06-24T00:00:02.000Z'));
+    if (!completed.ok) throw new Error('Expected completed.');
+
+    const retryable = prepareQueueRetry(completed.value);
+
+    expect(retryable.ok).toBe(true);
+    if (!retryable.ok) throw new Error('Expected retryable queue.');
+    expect(retryable.value.status).toBe('idle');
+    expect(retryable.value.jobs[0]?.status).toBe('pending');
+    expect(retryable.value.completedAt).toBeUndefined();
+  });
+
+  it('allows a paused queue to be cancelled', () => {
+    const running = startQueue(queueWithJobs(), iso('2026-06-24T00:00:01.000Z'));
+    if (!running.ok) throw new Error('Expected running.');
+    const paused = pauseQueue(running.value);
+    if (!paused.ok) throw new Error('Expected paused.');
+
+    const cancelling = requestQueueCancel(paused.value);
+
+    expect(cancelling.ok).toBe(true);
+    if (!cancelling.ok) throw new Error('Expected cancelling.');
+    expect(cancelling.value.status).toBe('cancelling');
   });
 });

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { ClockPort } from '../../../shared/application/clock-port';
 import { createDateTimeIso } from '../../../shared/domain/date-time';
@@ -9,6 +9,7 @@ import {
 } from '../../../shared/domain/ids';
 import { createFileSizeBytes, createProgressPercent } from '../../../shared/domain/numbers';
 import type { AudioConversionPort } from '../../conversion/application/audio-conversion-port';
+import type { AudioConversionCommand } from '../../conversion/application/conversion-command';
 import { createImportedFileRegistry } from '../../import/application/imported-file-registry';
 import type { AudioAsset } from '../../import/domain/audio-asset';
 import type { OutputWriterPort } from '../../output/application/output-writer-port';
@@ -150,6 +151,48 @@ describe('conversion output queue executor', () => {
     expect(completed).toBe('completed');
   });
 
+  it('records the filename resolved by the output writer', async () => {
+    const sourceAsset = asset();
+    const registry = createImportedFileRegistry();
+    registry.register(sourceAsset.id, new File(['fake audio'], 'Track.flac'));
+    const converter: AudioConversionPort = {
+      convert: (command) =>
+        Promise.resolve({
+          assetId: command.assetId,
+          outputName: command.outputName,
+          data: new Uint8Array([1, 2, 3]),
+          mimeType: 'audio/aiff',
+        }),
+      cancel: () => undefined,
+      dispose: () => undefined,
+    };
+    const writer: OutputWriterPort = {
+      destination: { type: 'download_fallback', name: 'Browser downloads' },
+      chooseDestination: () =>
+        Promise.resolve({ destination: { type: 'download_fallback', name: 'Browser downloads' } }),
+      writeFile: () =>
+        Promise.resolve({
+          outputName: 'Track-2.aiff',
+          destination: { type: 'download_fallback', name: 'Browser downloads' },
+        }),
+    };
+    const { queue, preset } = runningQueue(sourceAsset);
+
+    const outputName = await new Promise<string>((resolve, reject) => {
+      createConversionOutputQueueExecutor(converter, clock(), {
+        preset,
+        fileRegistry: registry,
+        outputWriter: writer,
+      }).execute(queue, {
+        onSnapshot: () => undefined,
+        onComplete: (snapshot) => resolve(snapshot.queue.jobs[0]?.outputName ?? ''),
+        onError: reject,
+      });
+    });
+
+    expect(outputName).toBe('Track-2.aiff');
+  });
+
   it('does not read the next file until the active conversion finishes', async () => {
     const firstAsset = assetAt(1);
     const secondAsset = assetAt(2);
@@ -230,6 +273,90 @@ describe('conversion output queue executor', () => {
     expect(reads.get('Track 2.flac')).toBe(1);
   });
 
+  it('pauses after the active job without starting a concurrent run', async () => {
+    const firstAsset = assetAt(1);
+    const secondAsset = assetAt(2);
+    const registry = createImportedFileRegistry();
+    const firstConversion = deferred<{
+      readonly assetId: typeof firstAsset.id;
+      readonly outputName: string;
+      readonly data: Uint8Array;
+      readonly mimeType: string;
+    }>();
+    const conversionStarted = deferred<void>();
+    const convertedAssetIds: string[] = [];
+
+    registry.register(firstAsset.id, new File(['first'], 'Track 1.flac'));
+    registry.register(secondAsset.id, new File(['second'], 'Track 2.flac'));
+
+    const convert = (command: AudioConversionCommand) => {
+      convertedAssetIds.push(command.assetId);
+      if (command.assetId === firstAsset.id) {
+        conversionStarted.resolve();
+        return firstConversion.promise;
+      }
+
+      return Promise.resolve({
+        assetId: command.assetId,
+        outputName: command.outputName,
+        data: new Uint8Array([4, 5, 6]),
+        mimeType: 'audio/aiff',
+      });
+    };
+    const converter: AudioConversionPort = {
+      convert: vi.fn(convert),
+      cancel: () => undefined,
+      dispose: () => undefined,
+    };
+    const writer: OutputWriterPort = {
+      destination: { type: 'download_fallback', name: 'Browser downloads' },
+      chooseDestination: () =>
+        Promise.resolve({ destination: { type: 'download_fallback', name: 'Browser downloads' } }),
+      writeFile: (file) =>
+        Promise.resolve({
+          outputName: file.name,
+          destination: { type: 'download_fallback', name: 'Browser downloads' },
+        }),
+    };
+    const { queue, preset } = runningQueueForAssets([firstAsset, secondAsset]);
+    let completed = false;
+    const completion = deferred<readonly string[]>();
+    const statuses: string[] = [];
+    const controls = createConversionOutputQueueExecutor(converter, clock(), {
+      preset,
+      fileRegistry: registry,
+      outputWriter: writer,
+    }).execute(queue, {
+      onSnapshot: (snapshot) => statuses.push(snapshot.queue.status),
+      onComplete: (snapshot) => {
+        completed = true;
+        completion.resolve(snapshot.queue.jobs.map((job) => job.status));
+      },
+      onError: completion.reject,
+    });
+
+    await conversionStarted.promise;
+    controls.pause();
+    firstConversion.resolve({
+      assetId: firstAsset.id,
+      outputName: 'Track 1.aiff',
+      data: new Uint8Array([1, 2, 3]),
+      mimeType: 'audio/aiff',
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(statuses).toContain('paused');
+    expect(convertedAssetIds).toEqual([firstAsset.id]);
+    expect(completed).toBe(false);
+
+    controls.resume();
+
+    await expect(completion.promise).resolves.toEqual(['completed', 'completed']);
+    expect(convertedAssetIds).toEqual([firstAsset.id, secondAsset.id]);
+  });
+
   it('cancels the active job and continues with the next job', async () => {
     const firstAsset = assetAt(1);
     const secondAsset = assetAt(2);
@@ -293,5 +420,45 @@ describe('conversion output queue executor', () => {
     controls.cancelJob(queue.jobs[0]?.id ?? queue.jobs[1]!.id);
 
     await expect(completed).resolves.toEqual(['cancelled', 'completed']);
+  });
+
+  it('cancels unstarted jobs when the whole queue is cancelled', async () => {
+    const firstAsset = assetAt(1);
+    const secondAsset = assetAt(2);
+    const registry = createImportedFileRegistry();
+    const started = deferred<void>();
+    const activeConversion = deferred<never>();
+    registry.register(firstAsset.id, new File(['first'], 'Track 1.flac'));
+    registry.register(secondAsset.id, new File(['second'], 'Track 2.flac'));
+    const converter: AudioConversionPort = {
+      convert: () => {
+        started.resolve();
+        return activeConversion.promise;
+      },
+      cancel: () => activeConversion.reject(new Error('cancelled')),
+      dispose: () => undefined,
+    };
+    const writer: OutputWriterPort = {
+      destination: { type: 'download_fallback', name: 'Browser downloads' },
+      chooseDestination: () =>
+        Promise.resolve({ destination: { type: 'download_fallback', name: 'Browser downloads' } }),
+      writeFile: () => Promise.reject(new Error('should not write')),
+    };
+    const { queue, preset } = runningQueueForAssets([firstAsset, secondAsset]);
+    const completion = deferred<readonly string[]>();
+    const controls = createConversionOutputQueueExecutor(converter, clock(), {
+      preset,
+      fileRegistry: registry,
+      outputWriter: writer,
+    }).execute(queue, {
+      onSnapshot: () => undefined,
+      onComplete: (snapshot) => completion.resolve(snapshot.queue.jobs.map((job) => job.status)),
+      onError: completion.reject,
+    });
+
+    await started.promise;
+    controls.cancel();
+
+    await expect(completion.promise).resolves.toEqual(['cancelled', 'cancelled']);
   });
 });

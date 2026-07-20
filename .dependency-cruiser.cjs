@@ -37,6 +37,12 @@ module.exports = {
       from: { path: '^src/.*/ui/' },
       to: { path: '^src/(workers|.*/workers/)|node_modules/@ffmpeg/' },
     },
+    {
+      name: 'ui-not-to-infrastructure',
+      severity: 'error',
+      from: { path: '^src/.*/ui/' },
+      to: { path: '^src/.*/infrastructure/' },
+    },
   ],
   options: {
     doNotFollow: { path: 'node_modules' },

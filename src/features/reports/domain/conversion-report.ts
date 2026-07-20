@@ -23,6 +23,12 @@ export type ConversionReportJob = {
   readonly attempts: number;
   readonly progressPercent: number;
   readonly errors: readonly string[];
+  readonly metadata?: {
+    readonly completeness: 'complete' | 'partial' | 'missing';
+    readonly sourceFormat: 'id3' | 'vorbis' | 'mp4' | 'unknown';
+    readonly missingFields: readonly ('title' | 'artist' | 'album')[];
+    readonly artwork: 'present' | 'missing' | 'unknown';
+  };
 };
 
 export type ConversionReportPreset = {

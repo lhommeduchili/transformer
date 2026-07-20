@@ -112,19 +112,14 @@ code {
 }
 
 .app-bar {
-  position: relative;
   display: grid;
   align-items: end;
   gap: 0.75rem;
   border-bottom: 2px solid var(--color-bone);
   padding-bottom: 0.7rem;
-  isolation: isolate;
-  overflow: hidden;
 }
 
 #app-title {
-  position: relative;
-  z-index: 2;
   margin: 0;
   color: var(--color-bone);
   font-size: clamp(4.25rem, 10vw, 6.8rem);
@@ -151,9 +146,6 @@ summary span:last-child,
 }
 
 .signature-line {
-  position: absolute;
-  right: 0;
-  bottom: 0.9rem;
   display: inline-flex;
   width: 21ch;
   align-items: center;
@@ -163,11 +155,18 @@ summary span:last-child,
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   text-align: left;
-  mix-blend-mode: difference;
   text-shadow: 0 0 1.1rem rgb(101 214 133 / 18%);
   white-space: nowrap;
-  z-index: 3;
   pointer-events: none;
+}
+
+.app-footer {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  padding-top: var(--space-section);
+  text-align: center;
 }
 
 .signature-cursor {
@@ -748,12 +747,6 @@ dd {
 @media (max-width: 900px) {
   #app-title {
     font-size: clamp(4.6rem, 15vw, 5rem);
-  }
-
-  .signature-line {
-    right: 0;
-    bottom: 0.82rem;
-    font-size: 0.68rem;
   }
 
   .app-shell {

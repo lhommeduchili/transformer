@@ -171,7 +171,7 @@ Key decisions:
 - Uploaded track separators appear only between tracks.
 - Queue progress uses a full-width ASCII meter with `░` and `█`, ending one character before the percent.
 - Individual queue jobs use status text and an active spinner, not filled progress bars.
-- The header uses layered composition: `transformer` remains the foreground editorial layer while the animated `made with ♥ by alφ` signature is an independent overlay layer using blend/compositing behavior.
+- The animated `made with ♥ by alφ` signature is centered in the page footer while `transformer` remains the stable editorial header.
 - Mobile workflow order should remain: tracks → preset → destination → convert.
 - Major workbench regions use a shared spacing token; primary desktop columns stretch to the same bottom edge as content changes.
 - Disclosure panels share reusable disclosure-content spacing rules instead of panel-specific body spacing.

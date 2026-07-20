@@ -14,7 +14,7 @@ Use:
 - Lowercase labels.
 - Terminal-style status language.
 - Editorial contrast in the main title.
-- Layered editorial composition between the `transformer` title and the animated signature.
+- Editorial contrast between the `transformer` title and the animated footer signature.
 - Sparse motion that feels like machine feedback.
 
 Avoid:
@@ -47,11 +47,10 @@ Use three typographic modes:
 - Terminal monospace for status, filenames, counters, queue rows, progress, buttons, selects, and compact operational text.
 - System sans for regular body rhythm where needed.
 
-The header composition uses layered typography:
+The title and footer signature use complementary typography:
 
-- `transformer` remains the stable foreground layer.
-- The animated `made with ♥ by alφ` signature is rendered as an independent overlay layer.
-- Overlap interaction should use compositing/blend behavior rather than layout tricks.
+- `transformer` remains the stable editorial title.
+- The animated `made with ♥ by alφ` signature is centered in the page footer.
 - The signature animation should preserve stable layout dimensions while typing/deleting.
 
 Headings and labels should remain lowercase unless the content is a filename, preset name, browser/API name, or user-provided text.

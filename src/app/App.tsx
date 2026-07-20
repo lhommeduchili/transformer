@@ -225,7 +225,6 @@ export function App() {
     <main className="app-shell">
       <header className="app-bar" aria-labelledby="app-title">
         <h1 id="app-title">transformer</h1>
-        <HeaderSignature />
       </header>
 
       <section className="workbench" aria-label="conversion workbench">
@@ -309,6 +308,10 @@ export function App() {
           </div>
         </section>
       ) : null}
+
+      <footer className="app-footer">
+        <AnimatedSignature />
+      </footer>
     </main>
   );
 }
@@ -318,7 +321,7 @@ function presetForQueue(queue: NonNullable<ReturnType<typeof useQueueStore.getSt
   return presets.find((preset) => preset.id === presetId);
 }
 
-function HeaderSignature() {
+function AnimatedSignature() {
   const [displayText, setDisplayText] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return signatureText;

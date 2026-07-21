@@ -7,7 +7,10 @@ test('loads the import and inspection shell', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: /transformer/i })).toBeVisible();
   await expect(page.locator('.signature-line .visually-hidden')).toHaveText('made with ♥ by alφ');
-  await expect(page.locator('a.signature-line')).toHaveAttribute('href', 'https://lhommeduchili.xyz');
+  await expect(page.locator('a.signature-line')).toHaveAttribute(
+    'href',
+    'https://lhommeduchili.xyz',
+  );
   await expect(page.getByRole('heading', { name: /drop audio/i })).toBeVisible();
 });
 

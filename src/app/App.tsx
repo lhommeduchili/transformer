@@ -110,13 +110,13 @@ export function App() {
     queue === undefined
       ? undefined
       : buildConversionReport({
-        queue,
-        assets,
-        preset: presetForQueue(queue) ?? selectedPreset,
-        destination: queueDestination ?? outputDestination,
-        generatedAt: queue.completedAt ?? clock.now(),
-        inspections,
-      });
+          queue,
+          assets,
+          preset: presetForQueue(queue) ?? selectedPreset,
+          destination: queueDestination ?? outputDestination,
+          generatedAt: queue.completedAt ?? clock.now(),
+          inspections,
+        });
 
   function handleFilesSelected(files: readonly File[]): Promise<void> {
     const queuedImport = importChainRef.current.then(() => importSelectedFiles(files));

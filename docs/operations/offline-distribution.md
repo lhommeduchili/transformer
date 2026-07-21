@@ -6,7 +6,7 @@ For a zero-knowledge walkthrough of GitHub secrets, Pages, and the first prerele
 
 ## PWA
 
-The production PWA is deployed to GitHub Pages by `.github/workflows/pages.yml`.
+The production PWA is built with Vite (`vite-plugin-pwa`) and deployed over HTTPS (e.g., Vercel).
 
 - Build locally with `npm run build:web`.
 - Preview with `npm run preview`.

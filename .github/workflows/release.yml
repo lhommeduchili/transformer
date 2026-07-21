@@ -92,7 +92,11 @@ jobs:
             cp out/make/squirrel.windows/${{ matrix.arch }}/*Setup.exe "release-artifacts/Transformer-${{ github.ref_name }}-windows-${{ matrix.arch }}-Setup.exe"
           fi
           cd release-artifacts
-          shasum -a 256 * > "SHA256-${{ matrix.platform }}-${{ matrix.arch }}.txt"
+          if command -v shasum >/dev/null 2>&1; then
+            shasum -a 256 * > "SHA256-${{ matrix.platform }}-${{ matrix.arch }}.txt"
+          else
+            sha256sum * > "SHA256-${{ matrix.platform }}-${{ matrix.arch }}.txt"
+          fi
 
       - name: Upload workflow artifacts
         uses: actions/upload-artifact@v4

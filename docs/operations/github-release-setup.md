@@ -243,7 +243,7 @@ https://lhommeduchili.github.io/transformer/
 Use Chrome or Edge first because they have the most complete filesystem support.
 
 1. Open `https://lhommeduchili.github.io/transformer/`.
-2. Wait for **ready to work offline**.
+2. Wait for the service worker to finish caching.
 3. Use the install icon in the browser address bar.
 4. Confirm installation.
 5. Import a small test audio file.

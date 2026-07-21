@@ -2,7 +2,7 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "ES2023",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "Bundler",
@@ -18,5 +18,14 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "tests/e2e/**/*.ts"]
+  "include": [
+    "desktop/**/*.ts",
+    "forge.config.ts",
+    "vite.config.ts",
+    "playwright.config.ts",
+    "playwright.electron.config.ts",
+    "tests/electron/**/*.ts",
+    "tests/e2e/**/*.ts",
+    "vitest.setup.ts"
+  ]
 }

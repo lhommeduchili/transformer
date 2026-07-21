@@ -59,6 +59,7 @@ Examples:
 - Metadata inspection adapter.
 - File System Access API adapter.
 - Browser capability detection.
+- Electron output bridge and secure packaged-asset protocol.
 - Structured local logger.
 - Report export writer.
 
@@ -94,6 +95,8 @@ Initial recommended stack:
 - React Hook Form for forms where needed.
 - Vitest for unit and integration tests.
 - Playwright for E2E tests.
+- Vite PWA for offline web installation.
+- Electron and Electron Forge for desktop distribution.
 - ESLint, Prettier, and architecture boundary tooling.
 
 TanStack Query is deferred because the application is local-first and queue/event-driven rather than server-state-driven.
@@ -106,3 +109,7 @@ TanStack Query is deferred because the application is local-first and queue/even
 - Background processing is limited by browser lifecycle behavior.
 
 The architecture must expose these limitations clearly through capability detection and user-facing messaging.
+
+## Distribution Runtimes
+
+The browser renderer is shared by the HTTPS PWA and Electron. The PWA uses File System Access with download fallback. Electron serves the renderer through `transformer://app` and supplies a typed native output adapter behind the same application port. See `docs/adr/0006-pwa-and-electron-distribution.md`.

@@ -37,6 +37,22 @@ body {
   background: var(--color-void);
 }
 
+.pwa-notice {
+  position: fixed;
+  z-index: 10;
+  right: 1rem;
+  bottom: 1rem;
+  width: min(22rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border: 1px solid var(--color-phosphor);
+  background: var(--color-carbon);
+  box-shadow: 0 0 0 1px var(--color-void);
+}
+
+.pwa-notice p {
+  margin: 0 0 0.75rem;
+}
+
 ::selection {
   background: var(--color-cyan);
   color: var(--color-void);
@@ -157,7 +173,12 @@ summary span:last-child,
   text-align: left;
   text-shadow: 0 0 1.1rem rgb(101 214 133 / 18%);
   white-space: nowrap;
-  pointer-events: none;
+  text-decoration: none;
+}
+
+.signature-line:focus-visible {
+  outline: 1px dashed var(--color-phosphor);
+  outline-offset: 4px;
 }
 
 .app-footer {

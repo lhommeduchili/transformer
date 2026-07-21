@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Transformer">
+  <rect width="512" height="512" fill="#000"/>
+  <path fill="#e3ddd3" d="M80 80h352v72H292v280h-72V152H80z"/>
+  <path fill="#65d685" d="M80 360h112v72H80zM320 360h112v72H320z"/>
+</svg>

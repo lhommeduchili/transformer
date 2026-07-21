@@ -7,6 +7,7 @@ test('loads the import and inspection shell', async ({ page }) => {
 
   await expect(page.getByRole('heading', { name: /transformer/i })).toBeVisible();
   await expect(page.locator('.signature-line .visually-hidden')).toHaveText('made with ♥ by alφ');
+  await expect(page.locator('a.signature-line')).toHaveAttribute('href', 'https://lhommeduchili.xyz');
   await expect(page.getByRole('heading', { name: /drop audio/i })).toBeVisible();
 });
 
@@ -113,6 +114,51 @@ test('converts a real wav locally and exports its report through download fallba
   expect(reportContents.jobs).toContainEqual(
     expect.objectContaining({ outputName: 'Local Test.aiff', status: 'completed' }),
   );
+});
+
+test('loads and converts after the PWA has been cached and the network is offline', async ({
+  context,
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.addInitScript(() => {
+    Object.defineProperty(globalThis, 'showDirectoryPicker', {
+      value: undefined,
+      configurable: true,
+    });
+  });
+  await page.goto('/');
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (
+          navigator as Navigator & {
+            serviceWorker: { readonly ready: Promise<unknown> };
+          }
+        ).serviceWorker.ready.then(() => true),
+      ),
+    )
+    .toBe(true);
+
+  await page.reload();
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: /transformer/i })).toBeVisible();
+
+  await page.getByLabel(/choose audio files/i).setInputFiles({
+    name: 'Offline Test.wav',
+    mimeType: 'audio/wav',
+    buffer: createSilentWav(),
+  });
+  await page.getByRole('button', { name: /create queue/i }).click();
+  const outputDownload = page.waitForEvent('download', { timeout: 120_000 });
+  await page.getByRole('button', { name: /^start$/i }).click();
+  const output = await outputDownload;
+
+  expect(output.suggestedFilename()).toBe('Offline Test.aiff');
+  await expect(page.getByRole('status')).toContainText(/queue status: completed/i, {
+    timeout: 120_000,
+  });
 });
 
 test('supports keyboard access to primary controls', async ({ page }) => {

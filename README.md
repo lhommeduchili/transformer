@@ -1,6 +1,6 @@
-# Browser-Based DJ Audio Preparation Tool
+# Transformer
 
-This repository is being bootstrapped as a production-grade, browser-native audio preparation tool for DJ music libraries.
+Transformer is a local-only audio preparation tool for DJ music libraries. It runs as an installable offline PWA or an Electron desktop application.
 
 The product principle is local-first processing: audio files must never be uploaded to a server. Conversion, validation, reporting, and audit logging are designed to run in the browser using worker-isolated WebAssembly-based FFmpeg.
 
@@ -26,6 +26,8 @@ The project now has a Vite, React, TypeScript, test, lint, build, E2E, and archi
 - `docs/operations/project-handoff.md`: current state, key files, known limitations, and next work.
 - `docs/operations/production-readiness.md`: release-readiness checklist.
 - `docs/operations/manual-release-test.md`: manual release test script.
+- `docs/operations/offline-distribution.md`: PWA, desktop packaging, self-signing, and release instructions.
+- `docs/operations/github-release-setup.md`: step-by-step GitHub secrets, Pages, and prerelease setup.
 - `docs/adr/`: architectural decision records.
 
 ## Non-Negotiable Constraints
@@ -50,5 +52,8 @@ The project now has a Vite, React, TypeScript, test, lint, build, E2E, and archi
 - `npm run arch`: run architecture boundary checks.
 - `npm run build`: build the production bundle.
 - `npm run test:e2e`: run Playwright E2E and accessibility smoke tests.
+- `npm run desktop`: build and run the Electron desktop app.
+- `npm run make:desktop`: build desktop installers for the host platform.
+- `npm run test:electron`: smoke-test an existing packaged desktop app.
 
 # transformer

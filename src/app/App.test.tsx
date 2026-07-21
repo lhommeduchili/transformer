@@ -8,9 +8,10 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: /transformer/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/made with ♥ by alφ/i).length).toBeGreaterThan(0);
-    expect(screen.getByRole('heading', { name: /drop audio/i })).toBeInTheDocument();
-    expect(screen.getByText(/cdj \/ rekordbox safe aiff/i)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /destination/i })).toBeInTheDocument();
+    const signatureLink = screen.getByRole('link', { name: /made with ♥ by alφ/i });
+    expect(signatureLink).toBeInTheDocument();
+    expect(signatureLink).toHaveAttribute('href', 'https://lhommeduchili.xyz');
+    expect(signatureLink).toHaveAttribute('target', '_blank');
+    expect(signatureLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 });

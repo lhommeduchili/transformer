@@ -8,11 +8,14 @@ export default tseslint.config(
   {
     ignores: [
       'dist',
+      'desktop-dist',
+      'out',
       'coverage',
       'node_modules',
       'playwright-report',
       'test-results',
       'eslint.config.js',
+      'scripts',
       '.dependency-cruiser.cjs',
     ],
   },

@@ -20,7 +20,6 @@ import { createConversionWorkerRuntime } from '../features/conversion/infrastruc
 import type { AudioConversionPort } from '../features/conversion/application/audio-conversion-port';
 import type { OutputDestination } from '../features/output/application/output-destination';
 import { createBestAvailableOutputWriter } from '../features/output/infrastructure/output-writer-factory';
-import { supportsFileSystemAccess } from '../features/output/infrastructure/file-system-access-output-writer';
 import { OutputDestinationPanel } from '../features/output/ui/OutputDestinationPanel';
 import {
   getAvailablePresets,
@@ -48,6 +47,7 @@ import {
 import { createSystemClock } from '../shared/infrastructure/browser/system-clock';
 import { createBrowserCapabilitiesAdapter } from '../shared/infrastructure/browser/browser-capabilities-adapter';
 import { createBrowserPreferencesAdapter } from '../features/settings/infrastructure/browser-preferences-adapter';
+import { PwaStatus } from './PwaStatus';
 
 const fileImportAdapter = createBrowserFileImportAdapter();
 const idGenerator = createCryptoAudioAssetIdGenerator();
@@ -110,13 +110,13 @@ export function App() {
     queue === undefined
       ? undefined
       : buildConversionReport({
-          queue,
-          assets,
-          preset: presetForQueue(queue) ?? selectedPreset,
-          destination: queueDestination ?? outputDestination,
-          generatedAt: queue.completedAt ?? clock.now(),
-          inspections,
-        });
+        queue,
+        assets,
+        preset: presetForQueue(queue) ?? selectedPreset,
+        destination: queueDestination ?? outputDestination,
+        generatedAt: queue.completedAt ?? clock.now(),
+        inspections,
+      });
 
   function handleFilesSelected(files: readonly File[]): Promise<void> {
     const queuedImport = importChainRef.current.then(() => importSelectedFiles(files));
@@ -223,6 +223,7 @@ export function App() {
 
   return (
     <main className="app-shell">
+      <PwaStatus />
       <header className="app-bar" aria-labelledby="app-title">
         <h1 id="app-title">transformer</h1>
       </header>
@@ -281,7 +282,7 @@ export function App() {
             />
             <OutputDestinationPanel
               destination={outputDestination}
-              supportsFolderSelection={supportsFileSystemAccess()}
+              supportsFolderSelection={outputWriter.destination.type === 'directory'}
               canChooseDestination={canRemoveImportedAssets}
               error={outputError}
               onChooseDestination={() => {
@@ -402,10 +403,15 @@ function AnimatedSignature() {
   }, []);
 
   return (
-    <p className="signature-line">
+    <a
+      className="signature-line"
+      href="https://lhommeduchili.xyz"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <span className="visually-hidden">{signatureText}</span>
       <span aria-hidden="true">{displayText}</span>
       <span className="signature-cursor" aria-hidden="true" />
-    </p>
+    </a>
   );
 }

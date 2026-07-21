@@ -1,0 +1,132 @@
+name: Desktop Release
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            platform: darwin
+            arch: arm64
+          - runner: macos-15-intel
+            platform: darwin
+            arch: x64
+          - runner: windows-latest
+            platform: win32
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Electron driver
+        if: matrix.platform == 'darwin'
+        run: npx playwright install chromium
+
+      - name: Validate tag and package versions
+        shell: bash
+        run: test "${GITHUB_REF_NAME#v}" = "$(node -p "require('./package.json').version")"
+
+      - name: Import macOS self-signing certificate
+        if: matrix.platform == 'darwin'
+        env:
+          MAC_CERTIFICATE_P12: ${{ secrets.MAC_CERTIFICATE_P12 }}
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          MAC_KEYCHAIN_PASSWORD: ${{ secrets.MAC_KEYCHAIN_PASSWORD }}
+        shell: bash
+        run: |
+          test -n "$MAC_CERTIFICATE_P12"
+          echo "$MAC_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/transformer-self-sign.p12"
+          security create-keychain -p "$MAC_KEYCHAIN_PASSWORD" "$RUNNER_TEMP/transformer.keychain-db"
+          security set-keychain-settings -lut 21600 "$RUNNER_TEMP/transformer.keychain-db"
+          security unlock-keychain -p "$MAC_KEYCHAIN_PASSWORD" "$RUNNER_TEMP/transformer.keychain-db"
+          security import "$RUNNER_TEMP/transformer-self-sign.p12" -k "$RUNNER_TEMP/transformer.keychain-db" -P "$MAC_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$RUNNER_TEMP/transformer.keychain-db" login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$MAC_KEYCHAIN_PASSWORD" "$RUNNER_TEMP/transformer.keychain-db"
+          security find-identity -v -p codesigning "$RUNNER_TEMP/transformer.keychain-db"
+
+      - name: Build distributables
+        env:
+          MAC_SIGNING_IDENTITY: transformer self-sign
+        run: npm run make:desktop -- --platform=${{ matrix.platform }} --arch=${{ matrix.arch }}
+
+      - name: Verify macOS signature
+        if: matrix.platform == 'darwin'
+        shell: bash
+        run: |
+          codesign --verify --deep --strict --verbose=2 "out/Transformer-darwin-${{ matrix.arch }}/Transformer.app"
+          codesign -dv --verbose=4 "out/Transformer-darwin-${{ matrix.arch }}/Transformer.app" 2>&1 | grep "Authority=transformer self-sign"
+
+      - name: Smoke-test packaged macOS app
+        if: matrix.platform == 'darwin'
+        env:
+          TRANSFORMER_ELECTRON_EXECUTABLE: ${{ github.workspace }}/out/Transformer-darwin-${{ matrix.arch }}/Transformer.app/Contents/MacOS/Transformer
+        run: npm run test:electron
+
+      - name: Collect artifacts and checksums
+        shell: bash
+        run: |
+          mkdir release-artifacts
+          if [ "${{ matrix.platform }}" = "darwin" ]; then
+            cp out/make/Transformer.dmg "release-artifacts/Transformer-${{ github.ref_name }}-macos-${{ matrix.arch }}.dmg"
+          else
+            cp out/make/squirrel.windows/${{ matrix.arch }}/*Setup.exe "release-artifacts/Transformer-${{ github.ref_name }}-windows-${{ matrix.arch }}-Setup.exe"
+          fi
+          cd release-artifacts
+          shasum -a 256 * > "SHA256-${{ matrix.platform }}-${{ matrix.arch }}.txt"
+
+      - name: Upload workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.platform }}-${{ matrix.arch }}
+          path: release-artifacts/*
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Create prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          cat > release-notes.md <<'NOTES'
+          ## Beta trust warning
+
+          - macOS builds use the self-signed `transformer self-sign` identity. Gatekeeper will require **System Settings > Privacy & Security > Open Anyway** on first launch.
+          - Windows builds are unsigned and will show an unknown-publisher SmartScreen warning.
+          - Verify the downloaded file against the attached SHA-256 files before overriding an operating-system warning.
+          - Audio processing remains local and the app does not upload audio files.
+          NOTES
+          gh release create "${{ github.ref_name }}" release-artifacts/* \
+            --repo "${{ github.repository }}" \
+            --title "Transformer ${{ github.ref_name }}" \
+            --notes-file release-notes.md \
+            --prerelease

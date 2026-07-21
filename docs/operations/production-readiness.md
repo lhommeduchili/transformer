@@ -15,6 +15,7 @@ Required before release:
 - `npm run arch`
 - `npm run build`
 - `npm run test:e2e`
+- Relevant `npm run test:electron` packaged-runtime smoke test
 
 CI must run the same gates, including Chromium Playwright smoke tests.
 
@@ -28,6 +29,8 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 - File handles are not persisted silently.
 - FFmpeg runs in a worker, not the UI thread.
 - FFmpeg core JavaScript and WebAssembly are bundled locally; conversion does not fetch executable code from a CDN at runtime.
+- Electron uses a sandboxed custom protocol, restrictive CSP, and a typed output-only preload bridge.
+- PWA offline conversion is tested after all network access is disabled.
 
 ## Compatibility Checklist
 
@@ -73,4 +76,7 @@ CI must run the same gates, including Chromium Playwright smoke tests.
 - Automated Playwright coverage performs one generated silent-WAV-to-AIFF conversion; broader real-format metadata/artwork coverage remains limited.
 - Real metadata/artwork compatibility must be manually verified with Rekordbox and target CDJ hardware.
 - Browser folder writing depends on File System Access API support; unsupported browsers use downloads.
+- macOS beta desktop artifacts use an untrusted self-signed identity and require a Gatekeeper override; production releases require Developer ID signing and notarization.
+- Windows beta desktop artifacts are unsigned until trusted Windows code signing is configured.
+- `@ffmpeg/core` distribution requires GPL corresponding-source and notice compliance before a public release.
 - Visual regression coverage is currently manual.

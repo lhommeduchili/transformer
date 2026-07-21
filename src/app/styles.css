@@ -183,10 +183,8 @@ summary span:last-child,
 
 .app-footer {
   display: flex;
-  min-height: 2.5rem;
   align-items: center;
   justify-content: center;
-  padding-top: var(--space-section);
   text-align: center;
 }
 

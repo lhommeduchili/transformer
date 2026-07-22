@@ -44,3 +44,9 @@ Use this checklist before merging or accepting AI-generated work.
 - Are application use cases tested with mocked ports?
 - Are worker protocols tested where changed?
 - Are E2E tests added for user-visible workflows?
+
+## Visual Alignment & Aesthetics
+
+- Are card padding and interior margins uniform across all containers?
+- Do adjacent workbench panels maintain horizontal and vertical grid alignment (e.g., CSS subgrid)?
+- Are PWA updates handled automatically without unaligned user prompts or banners?

@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         disable: isDesktop,
-        registerType: 'prompt',
+        registerType: 'autoUpdate',
         includeAssets: ['icons/transformer.svg'],
         manifest: {
           name: 'Transformer',

@@ -74,9 +74,7 @@ describe('Analytics Adapters', () => {
       adapter.init();
       adapter.init();
 
-      const scripts = document.querySelectorAll(
-        'script[data-website-id="test-website-id"]',
-      );
+      const scripts = document.querySelectorAll('script[data-website-id="test-website-id"]');
       expect(scripts.length).toBe(1);
     });
 

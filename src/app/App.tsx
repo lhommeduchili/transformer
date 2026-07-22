@@ -151,10 +151,7 @@ export function App({ services = defaultServices }: { readonly services?: Compos
   }
 
   function configureRealExecutor(preset: ConversionPreset): boolean {
-    if (
-      outputDestination.type === 'directory' &&
-      outputDestination.name === 'No folder selected'
-    ) {
+    if (outputDestination.type === 'directory' && outputDestination.name === 'No folder selected') {
       setOutputError('choose an output folder before creating the conversion queue.');
       return false;
     }
@@ -286,7 +283,9 @@ export function App({ services = defaultServices }: { readonly services?: Compos
   );
 }
 
-function presetForQueue(queue: NonNullable<ReturnType<CompositionServices['useQueueStore']['getState']>['queue']>) {
+function presetForQueue(
+  queue: NonNullable<ReturnType<CompositionServices['useQueueStore']['getState']>['queue']>,
+) {
   const presetId = queue.jobs[0]?.presetId;
   return presets.find((preset) => preset.id === presetId);
 }

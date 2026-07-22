@@ -33,7 +33,14 @@
     "test:run": "vitest run",
     "test:e2e": "playwright test",
     "test:electron": "playwright test --config=playwright.electron.config.ts",
-    "arch": "depcruise src --config .dependency-cruiser.cjs"
+    "arch": "depcruise src --config .dependency-cruiser.cjs",
+    "validate": "npm run format:check && npm run typecheck && npm run lint && npm run test:run && npm run arch",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,css,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@ffmpeg/core": "0.12.9",
@@ -69,7 +76,9 @@
     "eslint-plugin-react-hooks": "latest",
     "eslint-plugin-react-refresh": "latest",
     "globals": "latest",
+    "husky": "^9.1.7",
     "jsdom": "latest",
+    "lint-staged": "^17.1.1",
     "png-to-ico": "^3.0.1",
     "prettier": "latest",
     "typescript": "latest",

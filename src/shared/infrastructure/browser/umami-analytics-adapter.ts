@@ -6,22 +6,16 @@ export type UmamiAnalyticsConfig = {
   readonly websiteId?: string;
 };
 
-export function createUmamiAnalyticsAdapter(
-  config?: UmamiAnalyticsConfig,
-): AnalyticsPort {
+export function createUmamiAnalyticsAdapter(config?: UmamiAnalyticsConfig): AnalyticsPort {
   const env = import.meta.env as Record<string, unknown>;
   const defaultScriptUrl =
     typeof env['VITE_UMAMI_SCRIPT_URL'] === 'string'
       ? env['VITE_UMAMI_SCRIPT_URL']
       : '/stats/script.js';
   const defaultHostUrl =
-    typeof env['VITE_UMAMI_HOST_URL'] === 'string'
-      ? env['VITE_UMAMI_HOST_URL']
-      : '/stats';
+    typeof env['VITE_UMAMI_HOST_URL'] === 'string' ? env['VITE_UMAMI_HOST_URL'] : '/stats';
   const defaultWebsiteId =
-    typeof env['VITE_UMAMI_WEBSITE_ID'] === 'string'
-      ? env['VITE_UMAMI_WEBSITE_ID']
-      : undefined;
+    typeof env['VITE_UMAMI_WEBSITE_ID'] === 'string' ? env['VITE_UMAMI_WEBSITE_ID'] : undefined;
 
   const scriptUrl = config?.scriptUrl ?? defaultScriptUrl;
   const hostUrl = config?.hostUrl ?? defaultHostUrl;
@@ -33,9 +27,7 @@ export function createUmamiAnalyticsAdapter(
         return;
       }
 
-      const existingScript = document.querySelector(
-        `script[data-website-id="${websiteId}"]`,
-      );
+      const existingScript = document.querySelector(`script[data-website-id="${websiteId}"]`);
       if (existingScript) {
         return;
       }

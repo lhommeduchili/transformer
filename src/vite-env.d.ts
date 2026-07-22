@@ -6,5 +6,18 @@ import type { DesktopOutputApi } from './features/output/application/desktop-out
 declare global {
   interface Window {
     readonly transformerDesktop?: DesktopOutputApi;
+    readonly umami?: {
+      readonly track: (payload?: { url?: string }) => void;
+    };
   }
+}
+
+interface ImportMetaEnv {
+  readonly VITE_UMAMI_SCRIPT_URL?: string;
+  readonly VITE_UMAMI_HOST_URL?: string;
+  readonly VITE_UMAMI_WEBSITE_ID?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
 }

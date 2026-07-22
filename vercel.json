@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/stats/script.js",
+      "destination": "https://umami-analytics-lhommeduchilis-projects.vercel.app/script.js"
+    },
+    {
+      "source": "/stats/api/send",
+      "destination": "https://umami-analytics-lhommeduchilis-projects.vercel.app/api/send"
+    }
+  ]
+}

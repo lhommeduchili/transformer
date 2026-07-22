@@ -1,7 +1,7 @@
 import type { DateTimeIso } from '../../../shared/domain/date-time';
 import type { AudioAssetId, ConversionJobId, PresetId, QueueId } from '../../../shared/domain/ids';
 import type { ConversionJobStatus } from '../../conversion/domain/conversion-job';
-import type { OutputDestination } from '../../output/application/output-destination';
+import type { OutputDestination } from '../../output/domain/output-destination';
 import type { AudioContainer, AudioCodec } from '../../presets/domain/audio-format';
 import type { QueueStatus } from '../../queue/domain/queue-status';
 

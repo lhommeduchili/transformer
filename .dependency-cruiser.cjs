@@ -2,6 +2,12 @@
 module.exports = {
   forbidden: [
     {
+      name: 'domain-not-to-application',
+      severity: 'error',
+      from: { path: '^src/.*/domain/' },
+      to: { path: '^src/.*/application/' },
+    },
+    {
       name: 'domain-not-to-ui',
       severity: 'error',
       from: { path: '^src/.*/domain/' },
@@ -40,7 +46,7 @@ module.exports = {
     {
       name: 'ui-not-to-infrastructure',
       severity: 'error',
-      from: { path: '^src/.*/ui/' },
+      from: { path: '^(src/.*/ui/|src/app/App\\.tsx)' },
       to: { path: '^src/.*/infrastructure/' },
     },
   ],

@@ -125,6 +125,27 @@ describe('ImportPanel', () => {
     expect(onClearAssets).toHaveBeenCalledTimes(1);
   });
 
+  it('emits clear all when only rejected files are present', () => {
+    const onClearAssets = vi.fn();
+
+    render(
+      <ImportPanel
+        assets={[]}
+        rejected={[{ name: 'bad.exe', extension: 'exe', reason: 'unsupported_extension' }]}
+        canRemoveAssets={true}
+        onRemoveAsset={() => undefined}
+        onClearAssets={onClearAssets}
+        onFilesSelected={() => undefined}
+        onFilesDropped={() => Promise.resolve()}
+        supportsFolderDrop={false}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+
+    expect(onClearAssets).toHaveBeenCalledTimes(1);
+  });
+
   it('marks the drop surface active during drag', () => {
     render(
       <ImportPanel

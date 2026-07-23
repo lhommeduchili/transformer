@@ -129,6 +129,7 @@ export function App({ services = defaultServices }: { readonly services?: Compos
 
     importGenerationRef.current += 1;
     setAssets([]);
+    setRejected([]);
     setInspections([]);
     services.fileRegistry.clear();
 
@@ -192,7 +193,12 @@ export function App({ services = defaultServices }: { readonly services?: Compos
         <h1 id="app-title">transformer</h1>
       </header>
 
-      <section className="workbench" aria-label="conversion workbench">
+      <section
+        className={
+          assets.length > 0 || rejected.length > 0 ? 'workbench workbench--has-tracks' : 'workbench'
+        }
+        aria-label="conversion workbench"
+      >
         <div className="workbench-primary">
           <ImportPanel
             assets={assets}

@@ -72,7 +72,13 @@ export function ImportPanel({
       >
         {assets.length > 0 || rejected.length > 0 ? (
           <div className="imported-track-region">
-            <div className="panel-heading import-track-heading">
+            <div
+              className={
+                assets.length === 0 && rejected.length > 0
+                  ? 'panel-heading import-track-heading import-track-heading--rejected'
+                  : 'panel-heading import-track-heading'
+              }
+            >
               <h3>
                 tracks <span>({assets.length})</span>
               </h3>
@@ -80,7 +86,7 @@ export function ImportPanel({
                 className="clear-track-action"
                 type="button"
                 onClick={onClearAssets}
-                disabled={!canRemoveAssets || assets.length === 0}
+                disabled={!canRemoveAssets || (assets.length === 0 && rejected.length === 0)}
               >
                 clear
               </button>

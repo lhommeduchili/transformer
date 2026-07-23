@@ -217,17 +217,26 @@ summary span:last-child,
 .workbench {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
-  grid-template-rows: auto 1fr;
   gap: var(--space-section);
-  align-items: stretch;
+  align-items: start;
 }
 
 .workbench-primary,
 .workbench-setup {
   display: grid;
+  gap: var(--space-section);
+  align-content: start;
+}
+
+.workbench:not(.workbench--has-tracks) {
+  grid-template-rows: auto 1fr;
+  align-items: stretch;
+}
+
+.workbench:not(.workbench--has-tracks) .workbench-primary,
+.workbench:not(.workbench--has-tracks) .workbench-setup {
   grid-template-rows: subgrid;
   grid-row: span 2;
-  gap: var(--space-section);
 }
 
 .details-stack {
@@ -241,7 +250,7 @@ summary span:last-child,
 }
 
 .details-stack {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(18rem, 24rem);
   align-items: start;
 }
 
@@ -322,12 +331,11 @@ summary span:last-child,
 .imported-track-region {
   display: grid;
   gap: 0;
-  align-self: start;
+  width: 100%;
 }
 
-.import-track-heading {
-  border-bottom: 0;
-  padding-bottom: 0;
+.import-track-heading--rejected {
+  border-bottom-color: var(--color-crimson);
 }
 
 .import-track-heading h3 {
@@ -593,8 +601,12 @@ summary span span {
 }
 
 .rejected-files {
+  padding-top: 0.6rem;
+}
+
+.track-list + .rejected-files {
   border-top: 1px solid var(--color-crimson);
-  padding-top: 0.85rem;
+  margin-top: 0.2rem;
 }
 
 .rejected-files h3,

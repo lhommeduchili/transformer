@@ -13,14 +13,20 @@ export function MetadataIssuesPanel({ inspections }: Props) {
 
   return (
     <details className="disclosure-panel">
-      <summary>metadata issues ({issues.length})</summary>
+      <summary id="metadata-issues-title">
+        <span>
+          metadata issues <span>({issues.length})</span>
+        </span>
+      </summary>
       <ul className="disclosure-content detail-list" aria-label="metadata issues">
         {issues.map((inspection) => (
           <li key={inspection.assetId}>
-            {inspection.metadata.artist ?? 'unknown artist'} -{' '}
-            {inspection.metadata.title ?? 'unknown title'}
-            {' · missing: '}
-            {inspection.metadataAssessment.missingFields.join(', ')}
+            <strong>
+              {[inspection.metadata.artist, inspection.metadata.title]
+                .filter(Boolean)
+                .join(' - ') || 'unknown track'}
+            </strong>
+            <span>missing: {inspection.metadataAssessment.missingFields.join(', ')}</span>
           </li>
         ))}
       </ul>
